@@ -1,0 +1,32 @@
+name: RSSHub
+vertical: Feeds
+pattern: event-sidecar
+summary: "A per-citation toll at the crawler boundary — AI agents pay authors when they ground answers in feed items."
+meteredEvent: "a grounded citation — when an LLM agent (or crawler) grounds an answer in a source URL served via RSSHub, it POSTs `{ crawlerId, link, author }` to the sidecar's `/citation` route and pays a per-citation toll"
+payer: "the crawler/agent that monetizes the content (`crawlerId`, mapped in `PAYER_WALLETS`)"
+payee: "the item's author (`author` → `CREATOR_WALLETS`)"
+attachSurface: "The crawler boundary — RSSHub itself is untouched. The party that fetches and monetizes the content reports the citation. (Alternative, still fork-free: an operator-run middleware in front of RSSHub that stamps an attribution token per item.)"
+quickstartIntro: "Run the citation sidecar; crawlers report grounded citations to it:"
+quickstart: |
+  PLATFORM=rsshub RATE=5000 \
+  PAYER_WALLETS='{"<crawlerId>":"0x…"}' \
+  CREATOR_WALLETS='{"<author-or-author-url>":"0x…"}' \
+  FACILITATOR_URL=https://facilitator.example FACILITATOR_API_KEY=… \
+  npx up-integration                    # RATE = micro-USDC per citation
+
+  # a crawler reports a citation:
+  curl -X POST http://up-sidecar:8410/citation \
+    -H 'content-type: application/json' \
+    -d '{"crawlerId":"<crawlerId>","link":"https://…","author":"<author>"}'
+verifyCmd: "node scripts/e2e-rsshub-live-docker.mjs"
+verifyNote: "Fetches a real item from a live ghcr.io/diygod/rsshub feed, POSTs a crawler citation, and settles the toll on anvil (author paid 5000 micro-USDC)."
+tested: true
+testedDetail: "L3+L4 PASS — a live RSSHub item's citation settled on-chain to its author."
+recipeDoc: "packages/integrations/deploy/rsshub/README.md"
+caveats:
+  - "On a host without IPv6, run RSSHub with `DISABLE_IPV6=true` — otherwise it binds `::` and never serves on 127.0.0.1."
+  - "This bills the party that actually monetizes the content (the crawler), not feed readers."
+links:
+  - label: "Testing plan — RSSHub row"
+    path: "work/creator-platform-integrations/testing-plan.md"
+order: 6

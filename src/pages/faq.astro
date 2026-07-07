@@ -1,0 +1,109 @@
+---
+import Base from '../layouts/Base.astro';
+import { repoLink } from '../lib/site';
+
+const faqs = [
+  {
+    q: 'Who holds the money? Is this custodial?',
+    a: `Non-custodial, all the way down. A supporter's funds sit in their own on-chain
+        <code>StakeVault</code>. They grant the facilitator a bounded, revocable policy — a
+        spending cap and an expiry — and funds leave the vault only when a valid,
+        in-policy charge settles. The facilitator can trigger settlement of legitimate
+        charges; it can never take custody, exceed the cap, or spend after expiry. Revoke
+        the grant and spending stops.`,
+  },
+  {
+    q: 'What are the fees?',
+    a: `Settlement is feeless per event: there is no processor cut and no rent inside the
+        rail — the creator receives the full <strong>rate × units</strong>. The only costs
+        outside the rail are ordinary blockchain transaction costs, which batching keeps
+        small, and whatever it costs you to run a sidecar (roughly nothing).`,
+  },
+  {
+    q: 'Which chain and asset does it settle in?',
+    a: `Today: USDC on an EVM L2 (contracts are Foundry-built and chain-agnostic across
+        EVM networks; local development runs on anvil). It is not Monero and not
+        Lightning — if that's what you need, this rail isn't that today. The settlement
+        layer is a deliberate, pluggable choice rather than a protocol religion, but we
+        only claim what's built and tested.`,
+  },
+  {
+    q: 'Do I have to fork or modify my platform?',
+    a: `No — that's the core design constraint. Every integration attaches through a
+        surface the platform already exposes: a webhook you register (Owncast), a config
+        value you redirect (Navidrome), an official plugin you install (Jellyfin,
+        PeerTube), an external data slot you serve (Mastodon), a reverse proxy you put in
+        front (Immich), or nothing on the platform at all (the browser extension).
+        Upgrades keep working because the platform's source is untouched.`,
+  },
+  {
+    q: 'Is this a paywall or a tipping system?',
+    a: `Both modes run on the same rail, and <strong>tips are the default</strong>.
+        In tip/support mode content stays open: supporters who have staked send a small
+        amount per view, listen, or minute, and everyone else consumes for free
+        (unknown payers are metered-and-skipped, never blocked or charged). Paywall mode —
+        gating a resource behind an x402 <code>402 Payment Required</code> — is an opt-in
+        switch, not the headline.`,
+  },
+  {
+    q: 'What does a supporter actually do?',
+    a: `Stake once, set a budget, then forget about it. The supporter deposits USDC into
+        their vault and grants a policy like "up to N per month, until this date." From
+        then on the <a href="/integrations/browser-extension">browser extension</a> (or
+        any rail-aware client) pays automatically within that budget. They can revoke at
+        any time, and can never be charged past the cap they set.`,
+  },
+  {
+    q: 'What about privacy?',
+    a: `A candid note: on-chain settlement is public and pseudonymous. Amounts and wallet
+        addresses are visible on the chain, even though names are not attached by the
+        rail. Charge batching aggregates events, but if wallet-level privacy matters to
+        you, treat wallet hygiene (separate wallets per context) as your responsibility —
+        we'd rather say this plainly than pretend otherwise.`,
+  },
+  {
+    q: 'How do creators map to wallets?',
+    a: `A resolver maps platform-native identities to wallets. Today that's mostly
+        explicit JSON maps supplied by the operator (<code>CREATOR_WALLETS</code> /
+        <code>PAYER_WALLETS</code>); for music it's already a live registry — MusicBrainz
+        resolves <code>recording_mbid → artist_mbid → wallet</code>. Unknown ids resolve
+        to null and the event is skipped: the system never guesses a payee.`,
+  },
+  {
+    q: 'Is it actually tested, or is this a whitepaper?',
+    a: `Tested. Every platform climbs a four-layer ladder — unit tests, HTTP-contract
+        tests with the byte-exact payloads the real platform sends, a real Docker'd
+        instance driving the sidecar, and an on-chain money loop asserting the payee's
+        balance increased by exactly rate × units. Real instances verified include
+        PeerTube 7.3.0, Owncast, Navidrome, Jellyfin 10.11, a full-stack Mastodon v4,
+        RSSHub, Immich, and gonic.`,
+  },
+  {
+    q: 'Can AI agents pay too?',
+    a: `Yes — the payer side is client-neutral by design. The same
+        <code>@universal-paywall/agent</code> that powers the browser extension lets an
+        AI agent stake, grant a bounded policy, and pay per use — e.g. the RSSHub
+        integration bills a crawler a per-citation toll when it grounds an answer in a
+        feed item. The cap + expiry grant is exactly the spending bound you want around
+        an autonomous agent.`,
+  },
+];
+---
+
+<Base title="FAQ" description="Custody, fees, chains, privacy, tips vs. paywalls — candid answers.">
+  <h1>FAQ</h1>
+  <p class="lede muted">Candid answers — the honesty box, expanded.</p>
+
+  {faqs.map((f) => (
+    <details class="faq-item">
+      <summary>{f.q}</summary>
+      <p set:html={f.a} />
+    </details>
+  ))}
+
+  <p>
+    Something missing? The
+    <a href={repoLink('work/HANDOFF.md')} rel="noopener">doc index</a> in the repo goes
+    deeper, or <a href="/docs">browse the docs hub</a>.
+  </p>
+</Base>

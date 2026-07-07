@@ -1,0 +1,33 @@
+name: Mastodon
+vertical: Fediverse
+pattern: external-provider
+summary: "Serve Mastodon's donation-campaign slot — instance donations settle on-chain, transparently."
+meteredEvent: "an instance donation — Mastodon fetches its donation campaign from an external source; the sidecar serves that campaign JSON, and the campaign's `donation_url` routes donors through the rail (stake → grant → settle to the instance wallet)"
+payer: "the donor — stakes and grants at the campaign's `donation_url` via `@universal-paywall/agent`"
+payee: "the instance wallet named in the campaign"
+attachSurface: "Mastodon's sanctioned external-data slot: set `DONATION_CAMPAIGNS_URL` to the provider. Mastodon GETs it (with `platform`, `seed`, `locale`, `environment`), caches it for 1 h, and renders the banner. We fill a slot the platform already fetches — no fork change."
+quickstartIntro: "Run the campaign provider (no facilitator needed — it only serves config; donations settle later at the donation_url):"
+quickstart: |
+  PLATFORM=mastodon \
+  CAMPAIGN_DONATION_URL=https://donate.example/stake \
+  CAMPAIGN_BANNER_MESSAGE="Support this instance — settles onchain" \
+  CAMPAIGN_AMOUNTS='{"one_time":{"USD":[5,10,25]},"monthly":{"USD":[5]}}' \
+  npx up-integration
+
+  # on the Mastodon instance:
+  DONATION_CAMPAIGNS_URL=http://up-provider:8410/api/v1/donation_campaigns
+  DONATION_CAMPAIGNS_ENVIRONMENT=production
+verifyCmd: "npm run e2e:mastodon -w @universal-paywall/integrations"
+verifyNote: "Serves the real-schema campaign, follows the donation_url to a donor stake/grant, and settles the donation through the rail to the instance wallet on-chain (instance funded 5,000,000 micro-USDC)."
+tested: true
+testedDetail: "L2 + full-stack L3 + donation L4 PASS — a live full-stack Mastodon v4.x actually fetched the provider (real query logged) and rendered the campaign; the donation loop settled on-chain."
+recipeDoc: "packages/integrations/deploy/mastodon/README.md"
+caveats:
+  - "Mastodon's SSRF guard blocks private addresses — set `ALLOWED_PRIVATE_ADDRESSES` if the provider is on a private network."
+  - "Production `force_ssl` requires `X-Forwarded-Proto: https` in front of the provider."
+  - "The provider echoes the requested `locale` so Mastodon's `id:locale` cache key stays stable; with no campaign configured it returns `204`."
+  - "Per-user creator payments (paying an author for a popular post) is a separate, later vertical — a federation-peer sidecar observing the public `attributedTo` stream. Not this recipe."
+links:
+  - label: "Testing plan — Mastodon full-stack L3 notes"
+    path: "work/creator-platform-integrations/testing-plan.md"
+order: 8

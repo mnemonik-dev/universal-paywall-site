@@ -1,0 +1,44 @@
+---
+import Base from '../layouts/Base.astro';
+import { DOCS, REPO_URL, repoLink } from '../lib/site';
+---
+
+<Base
+  title="Docs"
+  description="The Universal Paywall documentation hub — playbook, attachment patterns, testing plan, deployment recipes."
+>
+  <h1>Docs</h1>
+  <p class="lede muted">
+    The repo is the source of truth; this site paraphrases it. These are the documents
+    everything else links back to.
+  </p>
+
+  <ul class="card-grid">
+    {DOCS.map((doc) => (
+      <li class="card">
+        <h3><a href={repoLink(doc.path)} rel="noopener">{doc.label}</a></h3>
+        <p><code class="small">{doc.path}</code></p>
+        <p>{doc.blurb}</p>
+      </li>
+    ))}
+  </ul>
+
+  <h2>Per-platform recipes</h2>
+  <p>
+    Each platform's authoritative attach recipe lives at
+    <code>packages/integrations/deploy/&lt;platform&gt;/README.md</code> — linked from
+    its <a href="/integrations">integration page</a> here.
+  </p>
+
+  <h2>On this site</h2>
+  <ul class="link-list">
+    <li><a href="/how-it-works">How the rail works</a> — the four actors, the six patterns, the test ladder.</li>
+    <li><a href="/admins">Admin deployment overview</a> — prerequisites + the <code>up-integration</code> env reference.</li>
+    <li><a href="/developers">Developer guide</a> — architecture and building a new integration.</li>
+    <li><a href="/faq">FAQ</a> — custody, fees, chains, privacy, tips vs. paywalls.</li>
+  </ul>
+
+  <p>
+    Everything is open source: <a href={REPO_URL} rel="noopener">{REPO_URL.replace('https://', '')}</a>.
+  </p>
+</Base>

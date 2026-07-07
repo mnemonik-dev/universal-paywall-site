@@ -1,0 +1,107 @@
+---
+import { getCollection, type CollectionEntry } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Badge from '../../components/Badge.astro';
+import CodeBlock from '../../components/CodeBlock.astro';
+import Callout from '../../components/Callout.astro';
+import PeertubeExtra from '../../components/PeertubeExtra.astro';
+import { PATTERN_LABELS, repoLink } from '../../lib/site';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('integrations');
+  return entries.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+
+interface Props {
+  entry: CollectionEntry<'integrations'>;
+}
+const { entry } = Astro.props;
+const d = entry.data;
+
+/** Render the tiny markdown subset used in YAML strings: `code` and **bold**. */
+function inlineMd(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+}
+---
+
+<Base title={d.name} description={d.summary}>
+  <header class="integration-header">
+    <h1>{d.name}</h1>
+    <div class="meta-row">
+      <Badge kind="vertical">{d.vertical}</Badge>
+      <Badge kind="pattern" title="Permissionless attachment pattern">
+        {PATTERN_LABELS[d.pattern] ?? d.pattern}
+      </Badge>
+      {d.tested && <Badge kind="tested" title={d.testedDetail}>tested — L1→L4</Badge>}
+      {d.payerSide && <Badge kind="payer">payer-side</Badge>}
+    </div>
+    <p class="lede muted">{d.summary}</p>
+  </header>
+
+  <h2 class="section-label">What gets metered</h2>
+  <p set:html={inlineMd(d.meteredEvent) + '.'} />
+  <ul>
+    <li><strong>Who pays:</strong> <span set:html={inlineMd(d.payer)} /></li>
+    <li><strong>Who gets paid:</strong> <span set:html={inlineMd(d.payee)} /></li>
+  </ul>
+
+  <h2 class="section-label">Attach surface — no fork</h2>
+  <p set:html={inlineMd(d.attachSurface)} />
+
+  <h2 class="section-label">Quickstart</h2>
+  {d.quickstartIntro && <p set:html={inlineMd(d.quickstartIntro)} />}
+  <CodeBlock code={d.quickstart} label={`${d.name} quickstart`} />
+  <p class="small muted">
+    All values above are placeholders — supply your own facilitator, wallets, and rate.
+    The shared prerequisites (a deployed <code>StakeVaultFactory</code>, a running
+    facilitator, a wallet registry) are covered in the <a href="/admins">admin overview</a>.
+  </p>
+
+  <h2 class="section-label">Verify</h2>
+  {d.verifyCmd && <CodeBlock code={d.verifyCmd} label={`${d.name} verify command`} />}
+  {d.verifyNote && <p set:html={inlineMd(d.verifyNote)} />}
+  {d.testedDetail && (
+    <Callout title="How it was proven" kind="honest">
+      <p set:html={inlineMd(d.testedDetail)} />
+    </Callout>
+  )}
+
+  {d.caveats.length > 0 && (
+    <>
+      <h2 class="section-label">Notes &amp; caveats</h2>
+      <Callout kind="warn">
+        <ul>
+          {d.caveats.map((c) => <li set:html={inlineMd(c)} />)}
+        </ul>
+      </Callout>
+    </>
+  )}
+
+  {entry.id === 'peertube' && <PeertubeExtra />}
+
+  <h2 class="section-label">Links</h2>
+  <ul class="link-list">
+    <li>
+      <a href={repoLink(d.recipeDoc)} rel="noopener">Recipe: <code>{d.recipeDoc}</code></a>
+      — the authoritative attach instructions in the repo.
+    </li>
+    {d.links.map((l) => (
+      <li><a href={repoLink(l.path)} rel="noopener">{l.label}</a></li>
+    ))}
+    <li>
+      <a href={repoLink('packages/integrations/INTEGRATION-PLAYBOOK.md')} rel="noopener">
+        Integration Playbook</a> — how integrations like this one are built.
+    </li>
+    <li>
+      <a href={repoLink('work/creator-platform-integrations/testing-plan.md')} rel="noopener">
+        Testing plan</a> — this platform's row in the L1→L4 matrix.
+    </li>
+  </ul>
+
+  <p><a href="/integrations">← All integrations</a></p>
+</Base>

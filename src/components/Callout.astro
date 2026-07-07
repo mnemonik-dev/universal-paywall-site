@@ -1,0 +1,13 @@
+---
+/** Honesty / caveat / note boxes. kind: note (accent) | warn (caveats) | honest (candor). */
+interface Props {
+  title?: string;
+  kind?: 'note' | 'warn' | 'honest';
+}
+const { title, kind = 'note' } = Astro.props;
+---
+
+<aside class={`callout ${kind === 'note' ? '' : kind}`.trim()}>
+  {title && <span class="callout-title">{title}</span>}
+  <slot />
+</aside>

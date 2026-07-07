@@ -1,0 +1,128 @@
+---
+/**
+ * The rail, as an inline theme-aware SVG (colors come from the CSS custom
+ * properties, so it follows light/dark automatically). Mirrors the diagram in
+ * the repo README: payer stakes + grants → platform event → integrations →
+ * facilitator → StakeVault settle; creator paid rate × units.
+ */
+---
+
+<div class="rail-diagram" role="img" aria-label="Diagram of the Universal Paywall rail. Payer side: the agent package stakes USDC once and grants a bounded policy into the StakeVault. Creator side: an unforked platform instance emits an event to the integrations package (sidecar, plugin, proxy or provider), which reports a metered charge to the facilitator. The facilitator batch-settles into the StakeVault, feelessly and non-custodially on-chain, and the creator is paid rate times units.">
+  <div class="scroll">
+    <svg viewBox="0 0 900 470" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <defs>
+        <marker id="rail-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" class="arrow-head" />
+        </marker>
+      </defs>
+
+      <!-- side labels -->
+      <text x="40" y="30" class="side-label">PAYER SIDE</text>
+      <text x="560" y="30" class="side-label">CREATOR / PAYEE SIDE</text>
+
+      <!-- agent -->
+      <rect x="40" y="48" width="270" height="118" rx="8" class="box" />
+      <text x="60" y="76" class="box-title mono">@universal-paywall/agent</text>
+      <text x="60" y="100" class="box-body">stake USDC once</text>
+      <text x="60" y="120" class="box-body">grant a bounded, revocable policy</text>
+      <text x="60" y="140" class="box-body muted-text">(cap + expiry — funds stay yours)</text>
+
+      <!-- platform -->
+      <rect x="560" y="48" width="300" height="76" rx="8" class="box" />
+      <text x="580" y="76" class="box-title">platform instance</text>
+      <text x="580" y="98" class="box-body muted-text">unforked — never modified</text>
+
+      <!-- integrations -->
+      <rect x="560" y="184" width="300" height="96" rx="8" class="box" />
+      <text x="580" y="212" class="box-title mono">@universal-paywall/integrations</text>
+      <text x="580" y="234" class="box-body">sidecar · plugin · proxy · provider</text>
+      <text x="580" y="254" class="box-body muted-text">turns the event into a charge</text>
+
+      <!-- facilitator -->
+      <rect x="560" y="340" width="300" height="76" rx="8" class="box" />
+      <text x="580" y="368" class="box-title mono">@universal-paywall/facilitator</text>
+      <text x="580" y="390" class="box-body muted-text">batches charges, settles on-chain</text>
+
+      <!-- StakeVault -->
+      <rect x="40" y="300" width="310" height="130" rx="8" class="box vault" />
+      <text x="60" y="330" class="box-title mono">StakeVault</text>
+      <text x="60" y="354" class="box-body">feeless · non-custodial · on-chain</text>
+      <text x="60" y="378" class="box-body">only valid, in-policy charges settle</text>
+      <text x="60" y="404" class="box-body payout">creator paid: rate × units</text>
+
+      <!-- arrows -->
+      <line x1="175" y1="166" x2="175" y2="296" class="arrow" marker-end="url(#rail-arrow)" />
+      <text x="188" y="238" class="edge-label">stake + grant policy</text>
+
+      <line x1="710" y1="124" x2="710" y2="180" class="arrow" marker-end="url(#rail-arrow)" />
+      <text x="697" y="158" text-anchor="end" class="edge-label">event — view · play · join · resolve</text>
+
+      <line x1="710" y1="280" x2="710" y2="336" class="arrow" marker-end="url(#rail-arrow)" />
+      <text x="723" y="314" class="edge-label">metered charge</text>
+
+      <line x1="560" y1="378" x2="356" y2="378" class="arrow" marker-end="url(#rail-arrow)" />
+      <text x="380" y="366" class="edge-label">batched settle</text>
+    </svg>
+  </div>
+</div>
+
+<style>
+  .rail-diagram .scroll {
+    overflow-x: auto;
+  }
+  .rail-diagram svg {
+    min-width: 640px;
+  }
+  .box {
+    fill: var(--bg-subtle);
+    stroke: var(--border);
+    stroke-width: 1.5;
+  }
+  .box.vault {
+    stroke: var(--accent);
+    stroke-width: 2;
+    fill: var(--accent-subtle);
+  }
+  .box-title {
+    font-family: var(--sans);
+    font-size: 16px;
+    font-weight: 700;
+    fill: var(--text);
+  }
+  .box-title.mono,
+  .mono {
+    font-family: var(--mono);
+    font-size: 14px;
+  }
+  .box-body {
+    font-family: var(--sans);
+    font-size: 13.5px;
+    fill: var(--text);
+  }
+  .muted-text {
+    fill: var(--text-muted);
+  }
+  .payout {
+    fill: var(--good);
+    font-weight: 700;
+  }
+  .side-label {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    fill: var(--text-muted);
+  }
+  .edge-label {
+    font-family: var(--sans);
+    font-size: 12.5px;
+    font-style: italic;
+    fill: var(--text-muted);
+  }
+  .arrow {
+    stroke: var(--accent);
+    stroke-width: 2;
+  }
+  .arrow-head {
+    fill: var(--accent);
+  }
+</style>

@@ -1,0 +1,138 @@
+---
+import Base from '../layouts/Base.astro';
+import RailDiagram from '../components/RailDiagram.astro';
+import CodeBlock from '../components/CodeBlock.astro';
+import Callout from '../components/Callout.astro';
+import { repoLink, REPO_URL } from '../lib/site';
+---
+
+<Base
+  title="For developers"
+  description="The Universal Paywall architecture, the createReporter/Resolve model, and how to build a new platform integration with the playbook."
+>
+  <h1>The rail, for developers</h1>
+  <p class="lede muted">
+    Open-core monorepo: a payer agent, a facilitator, a creator-side integrations
+    package, contracts, and an MV3 extension. Everything below links into the
+    <a href={REPO_URL} rel="noopener">repo</a> — the docs there are authoritative.
+  </p>
+
+  <RailDiagram />
+
+  <h2>Package map</h2>
+  <CodeBlock
+    label="package layout"
+    code={`packages/agent/            # @universal-paywall/agent — payer: stake, grant policy, fetchWithPaywall
+packages/facilitator/      # @universal-paywall/facilitator — batches metered charges, settles on-chain
+packages/integrations/     # @universal-paywall/integrations — creator-side sidecars/plugins/providers
+packages/extension/        # @universal-paywall/extension — payer-side MV3 browser-extension adaptor
+packages/peertube-plugin/  # peertube-plugin-universal-paywall — published PeerTube view-hook plugin
+packages/sdk/              # @universal-paywall/sdk — shared client/types
+packages/resource-adapter/ # @universal-paywall/resource-adapter — x402 resource helper
+packages/middleware/       # @universal-paywall/middleware — legacy per-payment x402 (see repo History)
+contracts/                 # Foundry: rail/ (StakeVault, StakeVaultFactory) + legacy vaults`}
+  />
+
+  <h2>The core model: <code>createReporter</code> + <code>Resolve</code></h2>
+  <p>
+    Every creator-side pattern — sidecar, plugin, proxy, provider — ends at the same
+    call. An adapter's whole job is to map a platform-native event to it:
+  </p>
+  <CodeBlock
+    label="reporter model"
+    code={`import { createReporter, mapResolver } from '@universal-paywall/integrations';
+
+const reporter = createReporter({
+  facilitatorUrl: process.env.FACILITATOR_URL!,
+  apiKey: process.env.FACILITATOR_API_KEY!,
+  resolvePayer: mapResolver(JSON.parse(process.env.PAYER_WALLETS || '{}')),
+  resolveCreator: mapResolver(JSON.parse(process.env.CREATOR_WALLETS || '{}')),
+});
+
+// a platform event becomes:
+await reporter.report({ payerKey, creatorKey, amount, ref });`}
+  />
+  <p>
+    <code>Resolve</code> maps a platform-native id to a wallet, and it's async — so a
+    static <code>mapResolver</code> can be swapped for a live registry like the
+    MusicBrainz resolver (<code>recording_mbid → artist_mbid → wallet</code>, cached
+    and rate-limited). The contract: <strong>unknown ids resolve to null and the event
+    is metered-and-skipped — never mischarged</strong>.
+  </p>
+
+  <h2>Build a new integration</h2>
+  <p>
+    The <a href={repoLink('packages/integrations/INTEGRATION-PLAYBOOK.md')} rel="noopener">
+    Integration Playbook</a> is the instruction doc: run its "questions script," and
+    the answers select your attachment pattern and give you the facts to implement it.
+  </p>
+  <ol>
+    <li>
+      <strong>A — Discovery.</strong> Answer the questions script: can an operator
+      redirect a protocol target by config? Does the platform emit webhooks? Can you
+      proxy the billable request? Is there a plugin loader? Does it fetch an external
+      source? First "yes" picks the pattern (patterns 1–5); otherwise go payer-side
+      (pattern 6). Then pin down the billable event's exact shape, the payer/creator
+      key spaces, and the unit of value.
+    </li>
+    <li>
+      <strong>B — Build.</strong> For sidecar-shaped patterns: a pure
+      <code>handle&lt;Event&gt;()</code> adapter in
+      <code>packages/integrations/src/</code>, a <code>Route</code> in
+      <code>serve.ts</code>, a CLI case so <code>PLATFORM=&lt;yours&gt;</code> runs it,
+      and unit tests with a spy reporter. Published plugins bundle self-contained
+      (esbuild) so they carry no unpublished dependency.
+    </li>
+    <li>
+      <strong>C — Wire the rail.</strong> Deploy a <code>StakeVaultFactory</code>, run
+      <code>up-facilitator</code>, stake + grant with the agent. Your adapter only ever
+      calls <code>reporter.report</code>.
+    </li>
+    <li>
+      <strong>D — Climb the test ladder.</strong> L1 unit → L2 HTTP contract (the
+      byte-exact requests the real platform sends) → L3 a real Docker'd instance →
+      L4 the anvil money loop.
+    </li>
+  </ol>
+
+  <Callout title="Definition of done" kind="honest">
+    <p>
+      An integration is done only when its L4 money loop settles on-chain: after one
+      platform event from a staked consumer, the resolved payee's USDC balance
+      increased by exactly <strong>rate × units</strong> in one batched
+      <code>StakeVault.settle</code>. Every "tested" badge on this site is backed by a
+      row in the <a href={repoLink('work/creator-platform-integrations/testing-plan.md')} rel="noopener">
+      test matrix</a>.
+    </p>
+  </Callout>
+
+  <h2>Run it locally</h2>
+  <CodeBlock
+    label="local commands"
+    code={`# install + unit tests
+npm install
+npm test --workspaces --if-present
+cd contracts && forge test
+
+# a creator-side sidecar (env-driven)
+PLATFORM=owncast FACILITATOR_URL=… FACILITATOR_API_KEY=… \\
+PAYER_WALLETS='{…}' CREATOR_WALLETS='{…}' RATE=1000 npx up-integration
+
+# the facilitator
+FACILITATOR_KEY=0x… STAKE_VAULT_FACTORY=0x… npx up-facilitator
+
+# on-chain money loops (anvil :8545 + built contracts)
+npm run e2e:anvil    -w @universal-paywall/integrations
+npm run e2e:owncast  -w @universal-paywall/integrations
+npm run e2e:mastodon -w @universal-paywall/integrations
+npm run e2e:anvil    -w @universal-paywall/extension`}
+  />
+
+  <h2>Where to read next</h2>
+  <ul class="link-list">
+    <li><a href={repoLink('packages/integrations/INTEGRATION-PLAYBOOK.md')} rel="noopener">INTEGRATION-PLAYBOOK.md</a> — the full build guide (questions script included).</li>
+    <li><a href={repoLink('work/creator-platform-integrations/integration-patterns.md')} rel="noopener">integration-patterns.md</a> — the six permissionless patterns, with the decision guide.</li>
+    <li><a href={repoLink('work/creator-platform-integrations/testing-plan.md')} rel="noopener">testing-plan.md</a> — the L1→L4 ladder and per-platform matrix.</li>
+    <li><a href="/docs">The docs hub</a> — everything else.</li>
+  </ul>
+</Base>

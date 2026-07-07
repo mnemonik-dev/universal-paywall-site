@@ -1,0 +1,37 @@
+name: PeerTube
+vertical: Federated VOD
+pattern: published-plugin
+summary: "Install the published universal-paywall plugin — per-view support/tips settled on-chain, no PeerTube fork."
+meteredEvent: "a counted video view — the plugin registers PeerTube's `action:api.video.viewed` server hook, which fires only after PeerTube's own anti-fraud watch-time threshold counts the view"
+payer: "the viewer, identified by an `x-payer-user` header stamped by a viewer client or the browser-extension adaptor (anonymous views are metered-and-skipped, never charged)"
+payee: "the channel wallet (creator key = `video.channelId ?? video.id`)"
+attachSurface: "PeerTube's sanctioned plugin loader: Admin → Plugins → install `peertube-plugin-universal-paywall`. A separately published plugin, not a core edit — PeerTube has no native view webhook, so the plugin slot is the permissionless attachment point (enabled upstream by PeerTube PR #6300, `req.rawBody`)."
+quickstartIntro: "Operator install — no code, no fork:"
+quickstart: |
+  1. Admin → Plugins → search & install `universal-paywall`
+     (or install from disk for a local build).
+  2. Configure the plugin settings:
+     Facilitator URL        = https://facilitator.example
+     Facilitator API key    = FACILITATOR_API_KEY=…
+     Price per view (µUSDC) = 1000
+     Viewer wallet map      = {"<payerKey>":"0x…"}
+     Channel wallet map     = {"<channelId>":"0x…"}
+  3. A staked viewer watches a video → counted view → hook →
+     metered charge → facilitator batches → StakeVault settles.
+verifyCmd: "node packages/peertube-plugin/e2e-player-docker.mjs"
+verifyNote: "Real headless-browser player against a live PeerTube 7.3.0 (postgres + redis): counted view → hook → on-chain settle."
+tested: true
+testedDetail: "L3+L4 PASS — the self-contained plugin bundle installs, registers the view hook + settings, and is enabled on a real PeerTube 7.3.0; a real player session drives a counted view through to an on-chain settle."
+recipeDoc: "packages/integrations/deploy/peertube/README.md"
+caveats:
+  - "The hook fires only on a **counted** view — PeerTube's anti-fraud watch-time threshold and viewer-stats processing debounce it, so short skims are never charged."
+  - "The hook's `video` is an MVideoImmutable with no `channelId` in some code paths, so the plugin keys the creator on `video.channelId ?? video.id` (a real bug found and fixed by the e2e player run)."
+  - "Anonymous views (no `x-payer-user`) are metered-and-skipped — nobody is ever mischarged."
+  - "The plugin is bundled self-contained (esbuild) so it has no unpublished runtime dependency."
+links:
+  - label: "Plugin package README (peertube-plugin-universal-paywall)"
+    path: "packages/peertube-plugin/README.md"
+  - label: "PeerTube issue #1586 — the 7-year monetization discussion this answers"
+    path: "https://github.com/Chocobozzz/PeerTube/issues/1586"
+featured: true
+order: 1

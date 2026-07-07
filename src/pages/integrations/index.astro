@@ -1,0 +1,48 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import IntegrationCard from '../../components/IntegrationCard.astro';
+
+const integrations = (await getCollection('integrations')).sort(
+  (a, b) => Number(b.data.featured) - Number(a.data.featured) || a.data.order - b.data.order
+);
+const verticals = [...new Set(integrations.map((i) => i.data.vertical))];
+---
+
+<Base
+  title="Integrations"
+  description="All Universal Paywall platform integrations — PeerTube, Owncast, Navidrome, Jellyfin, Mastodon, RSSHub, Immich, Subsonic, MusicBrainz, and the payer-side browser extension."
+>
+  <h1>Integrations</h1>
+  <p class="lede muted">
+    One rail, attached permissionlessly. Pick your platform — every page follows the
+    same template: what gets metered, the exact attach surface, a copy-paste
+    quickstart, and how it was verified.
+  </p>
+
+  <div class="filter-bar" role="group" aria-label="Filter by vertical">
+    <button type="button" data-filter="all" aria-pressed="true">All</button>
+    {verticals.map((v) => (
+      <button type="button" data-filter={v} aria-pressed="false">{v}</button>
+    ))}
+  </div>
+
+  <ul class="card-grid" id="integration-grid">
+    {integrations.map((entry) => <IntegrationCard entry={entry} />)}
+  </ul>
+
+  <script>
+    const buttons = document.querySelectorAll<HTMLButtonElement>('.filter-bar button');
+    const cards = document.querySelectorAll<HTMLElement>('#integration-grid .card');
+    buttons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const filter = btn.dataset.filter;
+        buttons.forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+        cards.forEach((card) => {
+          const show = filter === 'all' || card.dataset.vertical === filter;
+          card.style.display = show ? '' : 'none';
+        });
+      });
+    });
+  </script>
+</Base>

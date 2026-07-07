@@ -1,0 +1,44 @@
+---
+import { REPO_URL, SITE_TITLE } from '../lib/site';
+
+const nav = [
+  { href: '/how-it-works', label: 'How it works' },
+  { href: '/integrations', label: 'Integrations' },
+  { href: '/creators', label: 'Creators' },
+  { href: '/admins', label: 'Admins' },
+  { href: '/developers', label: 'Developers' },
+  { href: '/docs', label: 'Docs' },
+  { href: '/faq', label: 'FAQ' },
+];
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const isCurrent = (href: string) => path === href || path.startsWith(href + '/');
+---
+
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/"><span class="mark" aria-hidden="true"></span>{SITE_TITLE}</a>
+    <nav class="site-nav" aria-label="Main">
+      {nav.map((item) => (
+        <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>{item.label}</a>
+      ))}
+      <a href={REPO_URL} rel="noopener">GitHub</a>
+      <button class="theme-toggle" type="button" aria-label="Toggle color theme" title="Toggle color theme">
+        <span aria-hidden="true">◐</span>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<script>
+  const btn = document.querySelector('.theme-toggle');
+  btn?.addEventListener('click', () => {
+    const root = document.documentElement;
+    const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const current = root.dataset.theme ?? (systemDark ? 'dark' : 'light');
+    const next = current === 'dark' ? 'light' : 'dark';
+    root.dataset.theme = next;
+    try {
+      localStorage.setItem('theme', next);
+    } catch {}
+  });
+</script>

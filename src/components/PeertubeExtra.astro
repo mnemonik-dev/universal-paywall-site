@@ -1,0 +1,123 @@
+---
+/**
+ * PeerTube is the flagship integration — this extra content renders below the
+ * shared data-driven template, on /integrations/peertube only. Sources:
+ * packages/peertube-plugin/README.md, deploy/peertube/README.md, and the
+ * PeerTube #1586 community research.
+ */
+import Callout from './Callout.astro';
+import CodeBlock from './CodeBlock.astro';
+import { repoLink } from '../lib/site';
+---
+
+<h2 class="section-label">Tips first — support while you watch</h2>
+<p>
+  The plugin's default framing is <strong>support</strong>, not a gate. A viewer who has
+  staked sends a small amount per <em>counted</em> view — the video stays public, and
+  viewers who haven't opted in simply watch for free (their views are
+  metered-and-skipped, never blocked). Gating a video behind payment is the same
+  mechanics with the access check turned on — a <em>mode</em>, not the point.
+</p>
+<p>
+  This ordering comes straight from the PeerTube community: the seven-year-old
+  monetization discussion
+  (<a href="https://github.com/Chocobozzz/PeerTube/issues/1586" rel="noopener">issue #1586</a>)
+  asks again and again for ways to <em>support</em> creators and instances — and is
+  consistently wary of paywalls. The plugin is built to match.
+</p>
+
+<h2 class="section-label">Operator install, in full</h2>
+<ol>
+  <li><strong>Admin → Plugins</strong> → search and install <code>universal-paywall</code> (or install from disk for a local build).</li>
+  <li>
+    Configure the settings:
+    <ul>
+      <li><strong>Facilitator URL</strong> / <strong>Facilitator API key</strong> — your Universal Paywall facilitator.</li>
+      <li><strong>Price per view (micro-USDC)</strong> — e.g. <code>1000</code> (a tenth of a cent per counted view).</li>
+      <li><strong>Viewer wallet map</strong> — JSON <code>{'{'}"&lt;payerKey&gt;": "0x…"{'}'}</code>.</li>
+      <li><strong>Channel wallet map</strong> — JSON <code>{'{'}"&lt;channelId&gt;": "0x…"{'}'}</code>.</li>
+    </ul>
+  </li>
+  <li>Done — no restart of PeerTube core, no fork, no database surgery.</li>
+</ol>
+
+<h2 class="section-label">How a view becomes a payment</h2>
+<p>
+  PeerTube fires the <code>action:api.video.viewed</code> server hook only when its own
+  anti-fraud logic <strong>counts</strong> the view — a watch-time threshold plus
+  viewer-stats processing, the same debounce that guards the public view counter. That
+  means:
+</p>
+<ul>
+  <li>Skimming past a thumbnail or bouncing after two seconds never charges anyone.</li>
+  <li>The plugin inherits PeerTube's own view-fraud protection instead of inventing its own.</li>
+  <li>Each charge carries a per-view <code>ref</code> for idempotency — a view can't be double-billed.</li>
+  <li>The creator is keyed on <code>video.channelId ?? video.id</code> (the hook's video object is an <code>MVideoImmutable</code> that doesn't always carry <code>channelId</code> — a real bug found and fixed by the end-to-end player test).</li>
+</ul>
+
+<h2 class="section-label">Fund the whole stack — revenue splits</h2>
+<p>
+  Because the payee is just a wallet map, a counted view can pay more than one party —
+  the ask that recurs throughout #1586 is funding <em>every layer</em> that makes the
+  video possible:
+</p>
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Recipient</th><th>Why</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>The creator</strong> (channel wallet)</td><td>made the video — the default and primary payee.</td></tr>
+      <tr><td><strong>The instance host</strong></td><td>pays for the bandwidth and storage that serve it.</td></tr>
+      <tr><td><strong>PeerTube / Framasoft</strong></td><td>builds the software both depend on.</td></tr>
+    </tbody>
+  </table>
+</div>
+<p class="small muted">
+  Splits are a wallet-map configuration on the operator side; the rail itself just
+  settles <code>rate × units</code> to each resolved payee.
+</p>
+
+<Callout title="The honesty box" kind="honest">
+  <p>
+    Candor the fediverse has earned:
+  </p>
+  <ul>
+    <li>
+      <strong>The settlement asset today is USDC on an L2</strong> — not Monero, not
+      Lightning. If those matter to you, this rail isn't that (yet); the settlement
+      layer is a pluggable choice, but this is what's built and tested now.
+    </li>
+    <li>
+      <strong>It's one option, not a replacement.</strong> It sits beside PeerTube's
+      existing Support-button links (Liberapay, Patreon, …), it doesn't displace them.
+    </li>
+    <li>
+      <strong>Non-custodial means non-custodial.</strong> Nobody — including the
+      facilitator — holds viewer funds. Money leaves a viewer's vault only for a
+      charge inside the cap and expiry <em>they</em> granted, and the grant is
+      revocable at any time.
+    </li>
+    <li>
+      <strong>On-chain settlement is public.</strong> Amounts and wallet addresses are
+      pseudonymous but visible — see the <a href="/faq">privacy note</a>.
+    </li>
+  </ul>
+</Callout>
+
+<h2 class="section-label">Verified on a real PeerTube</h2>
+<p>
+  The self-contained plugin bundle was installed into a live <strong>PeerTube
+  7.3.0</strong> (postgres + redis): it installs, registers the view hook and its
+  settings, is enabled, and is configurable through the plugin settings API. A real
+  headless-browser player session then drove a <em>counted</em> view through the hook
+  to an on-chain settle:
+</p>
+<CodeBlock code={'node packages/peertube-plugin/e2e-player-docker.mjs'} label="PeerTube e2e verify" />
+<p>
+  Design context and the full recipe:
+  <a href={repoLink('packages/integrations/deploy/peertube/README.md')} rel="noopener">deploy/peertube/README.md</a> ·
+  <a href={repoLink('packages/peertube-plugin/README.md')} rel="noopener">the plugin README</a> ·
+  <a href="https://github.com/Chocobozzz/PeerTube/issues/1586" rel="noopener">PeerTube #1586</a>
+  (the discussion this design answers).
+</p>

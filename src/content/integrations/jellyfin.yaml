@@ -1,0 +1,33 @@
+name: Jellyfin
+vertical: VOD
+pattern: event-sidecar
+summary: "Point the official Webhook plugin at the sidecar — watched minutes settle to the library owner."
+meteredEvent: "watched playback time — the official first-party `jellyfin-plugin-webhook` POSTs `PlaybackStop` notifications to the sidecar, which bills `floor(position_minutes) × RATE` micro-USDC"
+payer: "the watching user (`UserId`, mapped in `PAYER_WALLETS`)"
+payee: "the content owner for the item (`ItemId`, mapped in `CREATOR_WALLETS`)"
+attachSurface: "Jellyfin's own plugin catalog: install the **official** Webhook plugin (a separate first-party plugin, not a fork edit) and add a destination pointing at the sidecar, subscribed to `PlaybackStop`."
+quickstartIntro: "Run the sidecar, then configure the Webhook plugin in Jellyfin:"
+quickstart: |
+  PLATFORM=jellyfin RATE=1000 \
+  PAYER_WALLETS='{"<UserId>":"0x…"}' \
+  CREATOR_WALLETS='{"<ItemId>":"0x…"}' \
+  FACILITATOR_URL=https://facilitator.example FACILITATOR_API_KEY=… \
+  npx up-integration                    # RATE = micro-USDC per minute
+
+  # In Jellyfin: Dashboard → Plugins → Catalog → install "Webhook".
+  # Add a destination:  http://up-sidecar:8410/jellyfin
+  #   subscribed to: PlaybackStop  (optionally PlaybackProgress)
+  #   template emits: NotificationType, UserId, ItemId, PlaybackPositionTicks
+verifyCmd: "node scripts/e2e-jellyfin-live-docker.mjs"
+verifyNote: "Full loop against a live ghcr.io/jellyfin/jellyfin (10.11.11) + official Webhook plugin (21.0.0.0): playback start/stop → per-minute bill → settle on anvil."
+tested: true
+testedDetail: "L3+L4 PASS — the official plugin's real payload matched the route exactly; 2 minutes of playback settled as 2000 micro-USDC on-chain."
+recipeDoc: "packages/integrations/deploy/jellyfin/README.md"
+caveats:
+  - "Billing happens on `PlaybackStop` only, rounding **down** to whole minutes — `PlaybackProgress` events never double-count."
+  - "The webhook template must emit `NotificationType`, `UserId`, `ItemId`, `PlaybackPositionTicks` (enable Send All Properties, or template those fields)."
+  - "On a fresh server the plugin catalog can be empty — drop the Webhook release zip into `/config/plugins/Webhook` and restart."
+links:
+  - label: "Testing plan — Jellyfin row"
+    path: "work/creator-platform-integrations/testing-plan.md"
+order: 5

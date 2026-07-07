@@ -1,0 +1,123 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import CodeBlock from '../components/CodeBlock.astro';
+import Callout from '../components/Callout.astro';
+import { repoLink, PATTERN_LABELS } from '../lib/site';
+
+const integrations = (await getCollection('integrations'))
+  .filter((i) => !i.data.payerSide)
+  .sort((a, b) => Number(b.data.featured) - Number(a.data.featured) || a.data.order - b.data.order);
+
+const envTable = [
+  ['PLATFORM', 'subsonic | navidrome | owncast | jellyfin | rsshub | mastodon | immich-proxy'],
+  ['FACILITATOR_URL / FACILITATOR_API_KEY', 'where to report charges'],
+  ['PAYER_WALLETS / CREATOR_WALLETS', 'JSON maps: platform id → 0x wallet'],
+  ['RATE', 'unit price (per play / per second / per minute / per citation), micro-USDC'],
+  ['STREAMER_KEY', 'Owncast only: the creator key for the stream'],
+  ['PORT', 'sidecar port (default 8410)'],
+  ['SIDECAR_API_KEY', 'optional x-api-key gate on the sidecar'],
+  ['MUSICBRAINZ_USER_AGENT', 'music modes: enables recording_mbid → artist_mbid → wallet via WS/2 (CREATOR_WALLETS keyed on artist MBID)'],
+  ['MUSICBRAINZ_BASE_URL', 'override WS/2 base (point at a local musicbrainz-server in CI)'],
+  ['UPSTREAM_URL', 'immich-proxy only: the Immich base URL to proxy + meter'],
+];
+---
+
+<Base
+  title="For instance admins"
+  description="Attach the Universal Paywall rail to your Owncast, PeerTube, Navidrome, Jellyfin, Mastodon, RSSHub or Immich instance — a sidecar or plugin, never a fork."
+>
+  <h1>Attach the rail to your instance — without forking it</h1>
+  <p class="lede muted">
+    Every attachment uses a surface your platform already exposes: a webhook you
+    register, a config value you redirect, a plugin you install, a proxy you put in
+    front. Your platform's source is never modified, and upgrades keep working.
+  </p>
+
+  <h2>Shared prerequisites (every recipe)</h2>
+  <ol>
+    <li>
+      A deployed <code>StakeVaultFactory</code> on the target chain
+      (<code>contracts/script/DeployStakeRail.s.sol</code> — anvil for local, an L2
+      testnet for staging).
+    </li>
+    <li>A running facilitator (<code>npx up-facilitator</code>) with its API key.</li>
+    <li>
+      At least one supporter who has staked + granted a policy via
+      <code>@universal-paywall/agent</code> (the payer side).
+    </li>
+    <li>
+      A wallet registry for your platform's identities — supplied to the sidecar as
+      <code>PAYER_WALLETS</code> / <code>CREATOR_WALLETS</code> JSON maps (static maps
+      today; music can resolve artists live via MusicBrainz).
+    </li>
+  </ol>
+
+  <h2>The sidecar in one command</h2>
+  <p>
+    Most platforms attach through one env-driven process, <code>up-integration</code>:
+  </p>
+  <CodeBlock
+    label="sidecar quickstart"
+    code={`PLATFORM=owncast \\
+FACILITATOR_URL=https://facilitator.example FACILITATOR_API_KEY=… \\
+PAYER_WALLETS='{"<viewer-id>":"0x…"}' CREATOR_WALLETS='{"<creator-id>":"0x…"}' \\
+RATE=1000 npx up-integration`}
+  />
+
+  <h3>Environment reference</h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Env</th><th>Meaning</th></tr>
+      </thead>
+      <tbody>
+        {envTable.map(([k, v]) => (
+          <tr><td><code>{k}</code></td><td>{v}</td></tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+  <p class="small muted">
+    Verbatim from the repo's
+    <a href={repoLink('packages/integrations/deploy/README.md')} rel="noopener">deployment README</a>,
+    which also carries each platform's <code>docker-compose.yml</code>.
+  </p>
+
+  <Callout title="Two attachments are installs, not sidecars" kind="note">
+    <p>
+      <a href="/integrations/peertube">PeerTube</a> is a published plugin you install
+      from Admin → Plugins, and <a href="/integrations/jellyfin">Jellyfin</a> uses the
+      official first-party Webhook plugin pointed at the sidecar. Both are sanctioned
+      extension points — still zero source edits.
+    </p>
+  </Callout>
+
+  <h2>Per-platform recipes</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Platform</th><th>Pattern</th><th>Attach surface</th><th>Recipe</th></tr>
+      </thead>
+      <tbody>
+        {integrations.map((i) => (
+          <tr>
+            <td><a href={`/integrations/${i.id}`}>{i.data.name}</a></td>
+            <td><code>{PATTERN_LABELS[i.data.pattern] ?? i.data.pattern}</code></td>
+            <td>{i.data.summary}</td>
+            <td><a href={repoLink(i.data.recipeDoc)} rel="noopener">repo recipe</a></td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Verifying your attachment</h2>
+  <p>
+    Each integration page carries its verify command; the general pattern is the
+    on-chain e2e loops (<code>npm run e2e:&lt;platform&gt; -w
+    @universal-paywall/integrations</code> against a local anvil chain). The success
+    check is always the same: after one real platform event from a staked supporter,
+    <strong>the payee's on-chain balance increased by exactly rate × units</strong>.
+  </p>
+</Base>

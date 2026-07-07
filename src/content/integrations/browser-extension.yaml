@@ -1,0 +1,38 @@
+name: Browser extension
+vertical: Payer-side
+pattern: payer-side
+summary: "The consumer side of the rail — an MV3 adaptor that auto-pays x402 paywalls and tips creators on the user's behalf."
+meteredEvent: "a paid fetch — the extension's service worker hosts a `PayerAgent`; `fetchWithPaywall` sends a signed proof and, on a `402 Payment Required`, grants on-chain and retries once. It's the payer for everything the creator-side integrations meter"
+payer: "the user — signing via a browser wallet (EIP-1193) or a managed, cap-bounded session account (never a raw key in code)"
+payee: "whichever creator the visited resource meters — the extension pays, the facilitator settles to the creator sidecar's payee"
+attachSurface: "Nothing on any platform at all — this is Pattern 6, the consumer/payer-side adaptor. Three modes: bundle it as a library, message one installed host extension (`chrome.runtime.onMessageExternal`), or use the injected `window.universalPaywall` page bridge."
+quickstartIntro: "Bundle it, or talk to the installed host extension from any other extension:"
+quickstart: |
+  // library mode — your extension's background service worker:
+  import { createPayerAgent } from '@universal-paywall/agent'
+  const agent = createPayerAgent({
+    rpcUrl, chainId, account,           // injected account — never a raw key
+    stakeVaultFactory: '0x…', usdc: '0x…',
+  })
+  const res = await agent.fetchWithPaywall(url, init)
+
+  // host/bridge mode — from ANY other extension:
+  chrome.runtime.sendMessage(UP_EXTENSION_ID,
+    { type: 'up:fetch', url, init },    // → paid Response back
+    (paidResponse) => { /* … */ })
+verifyCmd: "npm run e2e:anvil -w @universal-paywall/extension"
+verifyNote: "Drives the real payer loop through the extension handler + bridge against a real x402 resource: upFetch → 402 → auto vault/deposit/grant → 200 → facilitator settle → creator paid 50000 on-chain."
+tested: true
+testedDetail: "Node E2E + browser E2E PASS — the bundled MV3 extension loaded in headless Chromium; the in-service-worker agent auto-paid through to an on-chain settle."
+recipeDoc: "packages/integrations/deploy/browser-extension/README.md"
+caveats:
+  - "Spend is bounded twice: on-chain by the `StakeVault` grant cap + expiry, and locally by a per-origin/day budget in `chrome.storage`."
+  - "External callers are gated by an origin allowlist; first payment to a new origin asks the user, then stays silent within the cap."
+  - "Store publishing is the only external step — the package itself is built and tested."
+links:
+  - label: "Extension package (packages/extension, MV3)"
+    path: "packages/extension"
+  - label: "Testing plan — browser-extension row"
+    path: "work/creator-platform-integrations/testing-plan.md"
+payerSide: true
+order: 10

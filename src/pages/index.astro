@@ -1,0 +1,111 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import RailDiagram from '../components/RailDiagram.astro';
+import IntegrationCard from '../components/IntegrationCard.astro';
+import AudienceCTAs from '../components/AudienceCTAs.astro';
+import { REPO_URL, TAGLINE, repoLink } from '../lib/site';
+
+const integrations = (await getCollection('integrations')).sort(
+  (a, b) => Number(b.data.featured) - Number(a.data.featured) || a.data.order - b.data.order
+);
+const testedCount = integrations.filter((i) => i.data.tested).length;
+---
+
+<Base description={TAGLINE}>
+  <section class="hero">
+    <h1>Get paid on the platforms you already run — without forking them.</h1>
+    <p class="lede">
+      Universal Paywall is an open-core, non-custodial payment rail. A supporter stakes
+      once and grants a bounded spending policy; every metered event — a view, a play,
+      a minute watched — settles on-chain, feelessly, straight to the creator.
+    </p>
+    <div class="cta-row">
+      <a class="btn primary" href="/how-it-works">See how it works</a>
+      <a class="btn secondary" href="/integrations">Find your platform</a>
+    </div>
+    <AudienceCTAs />
+  </section>
+
+  <section aria-labelledby="how">
+    <h2 id="how">How it works — three steps</h2>
+    <ul class="card-grid step-cards">
+      <li class="card">
+        <span class="step-num">01</span>
+        <strong>Stake &amp; grant</strong>
+        <p>
+          The supporter stakes USDC once in their own <code>StakeVault</code> and grants a
+          bounded, revocable spending policy (cap + expiry). Funds never leave their vault
+          until a valid charge settles.
+        </p>
+      </li>
+      <li class="card">
+        <span class="step-num">02</span>
+        <strong>Meter the event</strong>
+        <p>
+          A permissionless adapter — sidecar, plugin, proxy or provider — observes the
+          platform's own event stream (a counted view, a scrobble, presence seconds) and
+          reports a metered charge. The platform is never modified.
+        </p>
+      </li>
+      <li class="card">
+        <span class="step-num">03</span>
+        <strong>Settle on-chain</strong>
+        <p>
+          The facilitator batches charges and calls <code>StakeVault.settle</code>. The
+          invariant every test asserts: <strong>payee balance += rate × units</strong>. No
+          custody, no processor cut.
+        </p>
+      </li>
+    </ul>
+    <p><a href="/how-it-works">Read the full walkthrough →</a></p>
+  </section>
+
+  <section aria-labelledby="rail">
+    <h2 id="rail">One rail, end to end</h2>
+    <RailDiagram />
+  </section>
+
+  <section aria-labelledby="grid">
+    <h2 id="grid">One rail, {integrations.length} attachment points</h2>
+    <p class="muted">
+      Every integration attaches through a surface the platform already exposes — a
+      webhook, a config value, a plugin slot, a proxyable request path — never a fork.
+    </p>
+    <ul class="card-grid">
+      {integrations.map((entry) => <IntegrationCard entry={entry} />)}
+    </ul>
+  </section>
+
+  <section aria-labelledby="different">
+    <h2 id="different">Why it's different</h2>
+    <ul class="pillars">
+      <li>
+        <strong>Non-custodial</strong>
+        <span>Funds stay in the supporter's own vault until a valid, in-policy charge settles. Nobody holds your money.</span>
+      </li>
+      <li>
+        <strong>Feeless per-event</strong>
+        <span>Charges are batched and settled on-chain with no processor cut and no rent in the rail.</span>
+      </li>
+      <li>
+        <strong>Never fork the platform</strong>
+        <span>Six permissionless attachment patterns. The platform's source is never edited — it can't even tell.</span>
+      </li>
+      <li>
+        <strong>Works on any instance</strong>
+        <span>Size-neutral: a three-viewer Owncast stream and a large PeerTube instance attach the exact same way.</span>
+      </li>
+    </ul>
+  </section>
+
+  <aside class="cred-strip" aria-label="Credibility">
+    <span class="stat"><strong>{integrations.length}</strong> platforms</span>
+    <span class="stat"><strong>{testedCount}</strong> verified through the L1→L4 test ladder</span>
+    <span class="stat">on-chain settlement proven against <strong>real Docker instances</strong></span>
+    <span class="stat">
+      open source — <a href={REPO_URL} rel="noopener">GitHub</a> ·
+      <a href={repoLink('work/creator-platform-integrations/testing-plan.md')} rel="noopener">the test matrix</a>
+    </span>
+  </aside>
+</Base>

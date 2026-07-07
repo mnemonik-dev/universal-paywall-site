@@ -1,0 +1,31 @@
+name: MusicBrainz
+vertical: Registry / resolver
+pattern: resolver
+summary: "The identity registry that turns a music scrobble into a payable artist — recording MBID → artist MBID → wallet."
+meteredEvent: "not a payable event itself — MusicBrainz is the registry that makes music events payable. A scrobble's `recording_mbid` is resolved via the WS/2 API (`GET /ws/2/recording/<mbid>?inc=artists&fmt=json`) to the credited `artist_mbid`, which the wallet registry maps to a payout address"
+payer: "n/a (registry — the paying event comes from Navidrome / Subsonic)"
+payee: "the resolved artist — `recording_mbid → artist_mbid → wallet`"
+attachSurface: "Read-only use of the public MusicBrainz WS/2 API (or a locally-run musicbrainz-server). Nothing is installed on MusicBrainz — the resolver composes into any music sidecar as its `resolveCreator`."
+quickstartIntro: "Enable MBID resolution in the Navidrome/Subsonic sidecar (CREATOR_WALLETS keyed on artist MBID):"
+quickstart: |
+  PLATFORM=navidrome RATE=100 \
+  MUSICBRAINZ_USER_AGENT="universal-paywall/0.1 (ops@example.com)" \
+  CREATOR_WALLETS='{"<artist-mbid>":"0xArtistWallet"}' \
+  FACILITATOR_URL=https://facilitator.example FACILITATOR_API_KEY=… \
+  npx up-integration
+
+  # MUSICBRAINZ_BASE_URL overrides WS/2 (point at a local
+  # musicbrainz-server in CI to avoid the public ~1 req/s limiter)
+verifyCmd: "npm test -w @universal-paywall/integrations"
+verifyNote: "8 resolver unit tests, plus live validation against the public WS/2: a known recording resolved to its credited artist's wallet, a repeat lookup was served from cache (1 network call), and unknown MBIDs returned null."
+tested: true
+testedDetail: "PASS — 8 unit tests + live WS/2 validation (recording → artist → wallet, cached, unknown → null)."
+recipeDoc: "packages/integrations/deploy/musicbrainz/README.md"
+caveats:
+  - "WS/2 etiquette: send a descriptive `User-Agent` and respect the ~1 req/s public rate limit — the resolver caches aggressively (recording → artist is immutable, 24 h TTL) and rate-limits itself."
+  - "If a scrobble already carries `artist_mbids` (it usually does), the resolver skips the WS/2 call entirely."
+  - "Unknown MBIDs resolve to null and the event is metered-and-skipped — never a wrong charge."
+links:
+  - label: "Navidrome recipe (the sidecar this resolver plugs into)"
+    path: "packages/integrations/deploy/navidrome/README.md"
+order: 9

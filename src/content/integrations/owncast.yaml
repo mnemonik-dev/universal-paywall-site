@@ -1,0 +1,32 @@
+name: Owncast
+vertical: Live video
+pattern: event-sidecar
+summary: "Register an admin webhook for chat presence events — viewers support the streamer per second watched."
+meteredEvent: "live viewing presence — Owncast emits `USER_JOINED` / `USER_PARTED` chat events to a registered admin webhook; the sidecar bills `(parted − joined) × RATE` micro-USDC per second on part"
+payer: "the viewer (chat username, mapped in `PAYER_WALLETS`), who has staked + granted via the agent"
+payee: "the streamer (`STREAMER_KEY`, resolved via `CREATOR_WALLETS`)"
+attachSurface: "Owncast's own outbound-webhook mechanism: an admin registers the sidecar URL via `POST /api/admin/webhooks/create`, subscribed to `USER_JOINED` / `USER_PARTED`. Zero Owncast change."
+quickstartIntro: "Run the sidecar, then register the webhook against the running Owncast admin API:"
+quickstart: |
+  PLATFORM=owncast \
+  FACILITATOR_URL=https://facilitator.example FACILITATOR_API_KEY=… \
+  STREAMER_KEY=stream \
+  PAYER_WALLETS='{"<viewer-username>":"0x…"}' \
+  CREATOR_WALLETS='{"stream":"0x…"}' \
+  RATE=1000 npx up-integration          # micro-USDC per second
+
+  # register the outbound webhook (wraps POST /api/admin/webhooks/create):
+  ./register-webhook.sh                 # → USER_JOINED / USER_PARTED
+                                        # → http://up-sidecar:8410/owncast
+verifyCmd: "npm run e2e:owncast -w @universal-paywall/integrations"
+verifyNote: "Drives the real sidecar HTTP server with the byte-exact JSON Owncast posts, through the facilitator to an on-chain settle — asserts the streamer is paid (parted − joined) × RATE."
+tested: true
+testedDetail: "L3+L4 PASS — a live owncast/owncast container with a real RTMP stream and a real chat websocket join/part settled 14 s of presence on-chain (streamer paid 14000 micro-USDC)."
+recipeDoc: "packages/integrations/deploy/owncast/README.md"
+caveats:
+  - "Owncast only fires `USER_JOINED` while the stream is **online** — bring the stream up (RTMP push) before expecting webhook events."
+  - "The presence bill lands on `USER_PARTED`; a viewer who never parts is billed when the part event finally fires (Owncast prunes stale connections after ~10 s)."
+links:
+  - label: "Testing plan — Owncast row (L3 + L4 details)"
+    path: "work/creator-platform-integrations/testing-plan.md"
+order: 2

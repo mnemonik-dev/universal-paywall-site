@@ -1,0 +1,69 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import IntegrationCard from '../components/IntegrationCard.astro';
+import Callout from '../components/Callout.astro';
+
+const integrations = (await getCollection('integrations'))
+  .filter((i) => !i.data.payerSide)
+  .sort((a, b) => Number(b.data.featured) - Number(a.data.featured) || a.data.order - b.data.order);
+---
+
+<Base
+  title="For creators"
+  description="Get supported on the platform you already use — tips per view, per listen, per minute. Non-custodial, you keep 100%."
+>
+  <h1>Get supported on the platform you already use</h1>
+  <p class="lede muted">
+    You don't move. Your videos stay on your PeerTube channel, your music stays on your
+    server, your stream stays yours. Supporters who opt in send you a little for every
+    view, listen, or minute — automatically.
+  </p>
+
+  <ul class="pillars">
+    <li>
+      <strong>Tips, not tollbooths</strong>
+      <span>Your content stays open by default. Supporters who've set it up pay as they enjoy it; everyone else keeps watching for free. Locking things behind payment is possible, but it's a switch — not the point.</span>
+    </li>
+    <li>
+      <strong>You keep 100%</strong>
+      <span>There's no platform cut and no payment-processor fee inside the rail. A supporter's tip arrives whole.</span>
+    </li>
+    <li>
+      <strong>Nobody holds the money</strong>
+      <span>Supporters keep their funds in their own vault; payments settle directly to your wallet. There's no company account in the middle that can freeze, delay, or fold.</span>
+    </li>
+    <li>
+      <strong>Any size instance</strong>
+      <span>Works the same on a huge instance or a self-hosted box with three viewers.</span>
+    </li>
+  </ul>
+
+  <h2>How it feels in practice</h2>
+  <p>
+    A supporter sets aside some money once and decides a budget — say, "up to $5 this
+    month." Then they just watch and listen like they always do. Every counted view or
+    finished song sends a tiny amount (you and your admin choose the rate — fractions
+    of a cent per event are normal) straight to your wallet. They can stop at any time,
+    and they can never be charged past the budget they set.
+  </p>
+
+  <Callout title="What you need" kind="note">
+    <p>
+      A wallet address, and an instance whose admin has attached the rail (or a
+      platform where you can run the attachment yourself — it never modifies the
+      platform). Send your admin to the <a href="/admins">admin overview</a>; the setup
+      is a sidecar or a plugin install, not a migration.
+    </p>
+  </Callout>
+
+  <h2>Find your platform</h2>
+  <ul class="card-grid">
+    {integrations.map((entry) => <IntegrationCard entry={entry} />)}
+  </ul>
+
+  <p class="muted small">
+    Your audience pays through the <a href="/integrations/browser-extension">browser
+    extension</a> or any client that speaks the rail — that side is covered too.
+  </p>
+</Base>

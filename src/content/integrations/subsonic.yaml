@@ -1,0 +1,29 @@
+name: Subsonic (gonic family)
+vertical: Music
+pattern: config-redirect
+summary: "Meter the Subsonic scrobble endpoint — per-play royalties for gonic and other Subsonic-API servers."
+meteredEvent: "a scrobbled play — the sidecar handles the Subsonic `GET /rest/scrobble.view` call (via `createSubsonicProxy` in front of the server, or as the configured scrobble target) and charges `RATE` per submission"
+payer: "the listening user (Subsonic username/credential, mapped in `PAYER_WALLETS`)"
+payee: "the artist — mapped from the track id in `CREATOR_WALLETS`, or resolved via MusicBrainz when `MUSICBRAINZ_USER_AGENT` is set"
+attachSurface: "The Subsonic API's own scrobble endpoint: either redirect the scrobble target at the sidecar or put the transparent `createSubsonicProxy` in front of the server — requests pass through untouched, scrobbles are metered. No server modification."
+quickstartIntro: "Run the sidecar in Subsonic mode:"
+quickstart: |
+  PLATFORM=subsonic RATE=100 \
+  PAYER_WALLETS='{"<subsonic-username>":"0x…"}' \
+  CREATOR_WALLETS='{"<track-or-artist-id>":"0x…"}' \
+  FACILITATOR_URL=https://facilitator.example FACILITATOR_API_KEY=… \
+  npx up-integration
+
+  # optional: resolve artists through MusicBrainz instead of a static map
+  MUSICBRAINZ_USER_AGENT="universal-paywall/0.1 (ops@example.com)"
+verifyCmd: "npm test -w @universal-paywall/integrations"
+verifyNote: "The Subsonic adapter and proxy are covered by the package's unit suite; the live loop ran against a real gonic instance."
+tested: true
+testedDetail: "L3+L4 PASS — a live gonic instance scrobbled through `createSubsonicProxy` and the play settled on-chain at `ratePerPlay`."
+recipeDoc: "packages/integrations/deploy/README.md"
+caveats:
+  - "gonic-family servers vary in how they emit scrobbles — the proxy shape (`createSubsonicProxy`) is the most portable attach; the shared env reference in `deploy/README.md` covers `PLATFORM=subsonic`."
+links:
+  - label: "Testing plan — Subsonic row"
+    path: "work/creator-platform-integrations/testing-plan.md"
+order: 4

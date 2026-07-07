@@ -1,0 +1,22 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import Badge from './Badge.astro';
+import { PATTERN_LABELS } from '../lib/site';
+
+interface Props {
+  entry: CollectionEntry<'integrations'>;
+}
+const { entry } = Astro.props;
+const { name, vertical, pattern, summary, tested, payerSide, featured } = entry.data;
+---
+
+<li class={`card ${featured ? 'featured' : ''}`.trim()} data-vertical={vertical}>
+  <h3><a href={`/integrations/${entry.id}`}>{name}</a></h3>
+  <div class="meta">
+    <Badge kind="vertical">{vertical}</Badge>
+    <Badge kind="pattern" title="Permissionless attachment pattern">{PATTERN_LABELS[pattern] ?? pattern}</Badge>
+    {tested && <Badge kind="tested" title="Verified through the L1→L4 test ladder">tested</Badge>}
+    {payerSide && <Badge kind="payer" title="The consumer side of the rail">payer-side</Badge>}
+  </div>
+  <p>{summary}</p>
+</li>

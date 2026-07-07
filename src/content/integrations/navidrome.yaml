@@ -1,0 +1,36 @@
+name: Navidrome
+vertical: Music
+pattern: config-redirect
+summary: "Point ND_LISTENBRAINZ_BASEURL at the sidecar — every play pays the artist, per listen."
+meteredEvent: "a completed listen — Navidrome scrobbles each play to its configured ListenBrainz target; the sidecar speaks the ListenBrainz wire protocol (`GET /1/validate-token`, `POST /1/submit-listens`) and charges `RATE` per `single` listen (`playing_now` submissions are metered-and-skipped)"
+payer: "the listener — the ListenBrainz token they link in Navidrome is the payer key, mapped in `PAYER_WALLETS`"
+payee: "the artist — resolved from the scrobble's `recording_mbid` via MusicBrainz (`recording_mbid → artist_mbid → wallet`), or directly from `artist_mbids`"
+attachSurface: "Navidrome's own config: `ND_LISTENBRAINZ_BASEURL` (default `https://api.listenbrainz.org/1/`) is redirected to the sidecar. Navidrome scrobbles to us natively — it can't tell the difference. Zero fork change, no proxy."
+quickstartIntro: "Run the sidecar, then redirect Navidrome's ListenBrainz target at it:"
+quickstart: |
+  PLATFORM=navidrome RATE=100 \
+  MUSICBRAINZ_USER_AGENT="universal-paywall/0.1 (ops@example.com)" \
+  PAYER_WALLETS='{"<listenbrainz-token>":"0x…"}' \
+  CREATOR_WALLETS='{"<artist-mbid>":"0x…"}' \
+  FACILITATOR_URL=https://facilitator.example FACILITATOR_API_KEY=… \
+  npx up-integration
+
+  # in the Navidrome service environment:
+  ND_LISTENBRAINZ_ENABLED=true
+  ND_LISTENBRAINZ_BASEURL=http://up-sidecar:8410/1/
+
+  # in Navidrome: link ListenBrainz with the listener's token
+  # (the sidecar validates it and treats it as the payer key)
+verifyCmd: "node scripts/e2e-navidrome-live-docker.mjs"
+verifyNote: "Full loop against a live ghcr.io/navidrome/navidrome container: link a token, scrobble an MBID-tagged track, resolve the artist via live MusicBrainz WS/2, settle on anvil."
+tested: true
+testedDetail: "L3+L4 PASS — a real Navidrome instance scrobbled an MBID-tagged track to the sidecar; the recording resolved to its artist via live MusicBrainz and the artist was paid 100 micro-USDC on-chain."
+recipeDoc: "packages/integrations/deploy/navidrome/README.md"
+caveats:
+  - "Only `single` listens are charged; `playing_now` submissions are metered-and-skipped, so pausing/resuming never double-charges."
+  - "Set `MUSICBRAINZ_USER_AGENT` to enable `recording_mbid → artist_mbid → wallet` resolution (WS/2 etiquette requires a descriptive User-Agent); without it, the sidecar falls back to a direct `CREATOR_WALLETS` lookup."
+  - "Key `CREATOR_WALLETS` on the **artist MBID** when MusicBrainz resolution is on."
+links:
+  - label: "MusicBrainz resolver recipe (the registry that makes this payable)"
+    path: "packages/integrations/deploy/musicbrainz/README.md"
+order: 3

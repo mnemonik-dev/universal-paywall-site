@@ -1,0 +1,33 @@
+---
+/** The three-audience fork — shown above the fold on the home page. */
+const audiences = [
+  {
+    href: '/creators',
+    who: 'Creators',
+    want: '“How do I get paid on the platform I already use?”',
+    cta: 'Find your platform',
+  },
+  {
+    href: '/admins',
+    who: 'Instance admins',
+    want: '“How do I attach this to my instance without forking it?”',
+    cta: 'Deploy a sidecar or plugin',
+  },
+  {
+    href: '/developers',
+    who: 'Developers',
+    want: '“How does the rail work, and how do I build a new integration?”',
+    cta: 'Architecture + playbook',
+  },
+];
+---
+
+<ul class="card-grid step-cards" aria-label="Choose your path">
+  {audiences.map((a) => (
+    <li class="card">
+      <h3><a href={a.href}>{a.who}</a></h3>
+      <p>{a.want}</p>
+      <p><a href={a.href}>{a.cta} →</a></p>
+    </li>
+  ))}
+</ul>

@@ -1,0 +1,30 @@
+name: Immich
+vertical: Photo
+pattern: reverse-proxy
+summary: "A transparent reverse proxy in front of Immich meters shared-link photo resolves — a per-resolve license fee."
+meteredEvent: "an external shared-link asset resolve — the proxy passes every request through to Immich and, when a shared-link asset is fetched (`GET /api/assets/:id/original?key=…`), looks up the asset's owner and reports a per-resolve license fee"
+payer: "the resolving agent/downloader — an `x-resolver-id` header, falling back to the share key (mapped in `PAYER_WALLETS`)"
+payee: "the asset owner — the EXIF artist when present, else Immich's `ownerId` (mapped in `CREATOR_WALLETS`)"
+attachSurface: "The HTTP boundary: `createImmichProxy` sits in front of Immich and proxies everything. Zero Immich edit — point your share URLs / clients at the proxy instead of Immich directly."
+quickstartIntro: "Run the metering proxy in front of your Immich instance:"
+quickstart: |
+  PLATFORM=immich-proxy UPSTREAM_URL=http://immich:2283 RATE=25000 \
+  PAYER_WALLETS='{"<resolverId>":"0x…"}' \
+  CREATOR_WALLETS='{"<ownerId-or-exif-artist>":"0x…"}' \
+  FACILITATOR_URL=https://facilitator.example FACILITATOR_API_KEY=… \
+  npx up-integration                    # RATE = micro-USDC per resolve
+
+  # point share URLs / clients at the proxy instead of Immich directly
+verifyCmd: "node scripts/e2e-immich-live-docker.mjs"
+verifyNote: "Full loop against a live Immich (server + vectorchord postgres + redis): upload a photo, create a shared link, resolve it through the proxy — the real image bytes stream through (200) and the license fee settles on anvil."
+tested: true
+testedDetail: "L3+L4 PASS — a real shared link resolved through the proxy; the owner was paid 25000 micro-USDC on-chain while the image streamed through untouched."
+recipeDoc: "packages/integrations/deploy/immich/README.md"
+caveats:
+  - "Thumbnail + original of one view are deduped to a **single** charge."
+  - "The owner viewing their own asset (no share key) is not metered."
+  - "A legacy event route (`POST /immich/resolve`, `PLATFORM=immich`) remains for callers that extract the resolve event themselves; the reverse proxy is the zero-config auto-attach."
+links:
+  - label: "Testing plan — Immich row"
+    path: "work/creator-platform-integrations/testing-plan.md"
+order: 7

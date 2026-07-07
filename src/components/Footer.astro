@@ -1,0 +1,19 @@
+---
+import { REPO_URL, repoLink } from '../lib/site';
+---
+
+<footer class="site-footer">
+  <div class="container">
+    <div>
+      <strong>Universal Paywall</strong> — open source, non-custodial, feeless per-event settlement.<br />
+      <a href={REPO_URL} rel="noopener">Source on GitHub</a> ·
+      <a href={repoLink('packages/integrations/INTEGRATION-PLAYBOOK.md')} rel="noopener">Integration Playbook</a> ·
+      <a href="/docs">Docs</a>
+    </div>
+    <div>
+      This site is fully static and self-contained: no analytics, no trackers,
+      no external fonts, no third-party requests. Theme preference is stored in
+      your browser's <code>localStorage</code> only.
+    </div>
+  </div>
+</footer>

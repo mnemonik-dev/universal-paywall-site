@@ -1,0 +1,171 @@
+---
+import Base from '../layouts/Base.astro';
+import RailDiagram from '../components/RailDiagram.astro';
+import Callout from '../components/Callout.astro';
+import { repoLink } from '../lib/site';
+---
+
+<Base
+  title="How it works"
+  description="The Universal Paywall rail explained: payer → integration → facilitator → StakeVault. Non-custodial, feeless, per-event settlement."
+>
+  <h1>How the rail works</h1>
+  <p class="lede muted">
+    Four actors, one invariant. A supporter stakes once; every metered platform event
+    settles on-chain to the creator — <strong>payee balance += rate × units</strong>.
+  </p>
+
+  <RailDiagram />
+
+  <h2>The four actors</h2>
+
+  <h3>1. The payer — <code>@universal-paywall/agent</code></h3>
+  <p>
+    The supporter (a viewer, a listener, or an AI agent acting for one) stakes USDC in
+    their own <code>StakeVault</code> and grants the facilitator a <strong>bounded,
+    revocable policy</strong>: a spending cap and an expiry. Nothing is custodied —
+    funds stay in the vault until a valid, in-policy charge settles them. Revoke the
+    grant and spending stops.
+  </p>
+
+  <h3>2. The platform event</h3>
+  <p>
+    The platform keeps doing what it already does: PeerTube counts a view, Owncast sees
+    a viewer join and part, Navidrome scrobbles a play, Jellyfin reports a playback
+    stop, Immich serves a shared-link photo. The platform is <strong>never forked</strong>
+    — the rail listens at a boundary it already exposes.
+  </p>
+
+  <h3>3. The integration — <code>@universal-paywall/integrations</code></h3>
+  <p>
+    A small adapter — a sidecar, a published plugin, a reverse proxy, or an external
+    provider — translates that platform-native event into one call:
+    <code>reporter.report({'{'} payerKey, creatorKey, amount, ref {'}'})</code>.
+    Identity resolvers map platform ids to wallets (for music, live MusicBrainz:
+    <code>recording_mbid → artist_mbid → wallet</code>). Unknown ids are
+    metered-and-skipped — nobody is ever mischarged.
+  </p>
+
+  <h3>4. The facilitator — <code>@universal-paywall/facilitator</code></h3>
+  <p>
+    The facilitator batches metered charges and calls <code>StakeVault.settle</code>
+    on-chain. Settlement is <strong>feeless per event</strong> — no processor cut, no
+    rent in the rail — and only charges within the payer's granted cap and expiry can
+    settle.
+  </p>
+
+  <Callout title="The one universal assertion" kind="honest">
+    <p>
+      Every platform's acceptance test checks the same thing: after one consumption
+      event from a staked supporter, the resolved payee's on-chain USDC balance
+      increased by <em>exactly</em> rate × units, in one batched
+      <code>StakeVault.settle</code>. Everything else is plumbing that exists to make
+      that one assertion true.
+    </p>
+  </Callout>
+
+  <h2>Permissionless attachment — the six patterns</h2>
+  <p>
+    The core principle: <strong>attach at a boundary the platform already exposes</strong>
+    — its config, its outbound events, its request path, its plugin loader, its
+    external-data slots, or the client. The platform's source is never modified.
+  </p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>#</th><th>Pattern</th><th>Idea</th><th>Proven on</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td><strong>Config redirect</strong></td>
+          <td>The platform already speaks a protocol to some upstream; we implement that protocol and the operator redirects one config value at us. The platform can't tell.</td>
+          <td><a href="/integrations/navidrome">Navidrome</a> (<code>ND_LISTENBRAINZ_BASEURL</code>), <a href="/integrations/subsonic">Subsonic</a></td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td><strong>Event sidecar</strong></td>
+          <td>The platform emits webhooks/notifications; we register our endpoint for the events that matter.</td>
+          <td><a href="/integrations/owncast">Owncast</a> (admin webhook), <a href="/integrations/jellyfin">Jellyfin</a> (official Webhook plugin), <a href="/integrations/rsshub">RSSHub</a> (crawler boundary)</td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td><strong>Reverse proxy</strong></td>
+          <td>Sit transparently in the request path; meter the requests whose serving is the billable event.</td>
+          <td><a href="/integrations/immich">Immich</a> (shared-link resolves)</td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td><strong>Published plugin</strong></td>
+          <td>Where the platform has a plugin loader, ship a published plugin into that sanctioned slot — still not a source edit.</td>
+          <td><a href="/integrations/peertube">PeerTube</a> (<code>action:api.video.viewed</code>)</td>
+        </tr>
+        <tr>
+          <td>5</td>
+          <td><strong>External provider</strong></td>
+          <td>The platform fetches an external data source; we run that source.</td>
+          <td><a href="/integrations/mastodon">Mastodon</a> (<code>DONATION_CAMPAIGNS_URL</code>)</td>
+        </tr>
+        <tr>
+          <td>6</td>
+          <td><strong>Payer-side adaptor</strong></td>
+          <td>Nothing on the platform at all — pay on the user's behalf from the client.</td>
+          <td><a href="/integrations/browser-extension">Browser extension</a> (MV3)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>
+    Full write-up:
+    <a href={repoLink('work/creator-platform-integrations/integration-patterns.md')} rel="noopener">
+      the six permissionless attachment patterns</a> — including why a core PR to the
+    platform is the <em>wrong</em> shape for this (upstreams merge donation pointers,
+    but reject per-user payment plumbing; the durable integration is one you ship
+    yourself at a boundary the platform already exposes).
+  </p>
+
+  <h2>Tips vs. paywall — a mode, not a headline</h2>
+  <p>
+    The same rail runs two modes, and <strong>tip mode is the default framing</strong>:
+  </p>
+  <ul>
+    <li>
+      <strong>Tip / support mode</strong> — content stays open; supporters who have
+      staked automatically send a small amount per view, per listen, or per minute.
+      Think "support-while-you-watch," not a gate.
+    </li>
+    <li>
+      <strong>Paywall mode</strong> — the resource is gated (x402 <code>402 Payment
+      Required</code>) and the payer agent or browser extension pays to unlock it.
+    </li>
+  </ul>
+  <p>
+    Creators on community platforms overwhelmingly asked for support mechanisms, not
+    gates — so the integrations default to metering support, and gating is opt-in.
+  </p>
+
+  <h2>Credibility: how each integration is proven</h2>
+  <p>
+    Every platform climbs the same four-layer ladder before its "tested" badge turns
+    green — an integration is "done" only when its layer-4 money loop settles on-chain:
+  </p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Layer</th><th>What it proves</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>L1 Unit</strong></td><td>the adapter maps a platform event to the right charge arguments</td></tr>
+        <tr><td><strong>L2 HTTP contract</strong></td><td>the running sidecar answers real platform-shaped HTTP correctly (status, body, headers)</td></tr>
+        <tr><td><strong>L3 Real instance</strong></td><td>a real Docker'd platform instance, wired per its recipe, actually calls the sidecar on a real event</td></tr>
+        <tr><td><strong>L4 On-chain money loop</strong></td><td>stake + grant → event → charge → batch → settle → <strong>the payee's balance increased by exactly rate × units</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    The per-platform matrix lives in the repo:
+    <a href={repoLink('work/creator-platform-integrations/testing-plan.md')} rel="noopener">testing-plan.md</a>.
+  </p>
+</Base>

@@ -1,0 +1,33 @@
+---
+/** A monospace block with copy-to-clipboard. `code` is rendered as escaped text. */
+interface Props {
+  code: string;
+  label?: string;
+}
+const { code, label = 'code' } = Astro.props;
+const trimmed = code.replace(/\s+$/, '');
+---
+
+<div class="codeblock">
+  <pre tabindex="0"><code>{trimmed}</code></pre>
+  <button class="copy-btn" type="button" aria-label={`Copy ${label} to clipboard`}>Copy</button>
+</div>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('.codeblock .copy-btn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const code = btn.closest('.codeblock')?.querySelector('code')?.textContent ?? '';
+      try {
+        await navigator.clipboard.writeText(code);
+        btn.textContent = 'Copied';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = 'Copy';
+          btn.classList.remove('copied');
+        }, 1600);
+      } catch {
+        btn.textContent = 'Select & copy';
+      }
+    });
+  });
+</script>
