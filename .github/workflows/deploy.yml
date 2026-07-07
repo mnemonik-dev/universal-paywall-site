@@ -1,6 +1,8 @@
-# Build the Astro site and publish it to GitHub Pages on every push.
-# configure-pages supplies the correct origin/base_path automatically —
-# including when a custom domain is configured later.
+# Build the Astro site and publish dist/ to the gh-pages branch on every push.
+# On a public repo, creating the gh-pages branch auto-enables GitHub Pages
+# (Settings → Pages → Deploy from a branch), so no manual setup is needed.
+# Served at: https://mnemonik-dev.github.io/universal-paywall-site/
+# If you later add a custom domain, set SITE_URL to it and BASE_PATH to "/".
 name: Deploy to GitHub Pages
 
 on:
@@ -9,23 +11,17 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: pages
   cancel-in-progress: false
 
 jobs:
-  build:
+  build-deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - id: pages
-        uses: actions/configure-pages@v5
-        with:
-          enablement: true
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -33,18 +29,9 @@ jobs:
       - run: npm ci
       - run: npm run build
         env:
-          SITE_URL: ${{ steps.pages.outputs.origin }}
-          BASE_PATH: ${{ steps.pages.outputs.base_path }}
-      - uses: actions/upload-pages-artifact@v3
+          SITE_URL: https://mnemonik-dev.github.io
+          BASE_PATH: /universal-paywall-site
+      - uses: peaceiris/actions-gh-pages@v4
         with:
-          path: dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
