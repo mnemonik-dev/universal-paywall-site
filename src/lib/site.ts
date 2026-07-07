@@ -1,3 +1,13 @@
+/**
+ * Base-path-aware internal links. BASE_URL is '/' for root deploys and
+ * '/<repo>/' on GitHub Pages project sites (set via BASE_PATH in astro.config).
+ * Every internal href on the site goes through this helper.
+ */
+const BASE = import.meta.env.BASE_URL.replace(/\/+$/, '');
+export function withBase(path: string): string {
+  return `${BASE}${path.startsWith('/') ? path : `/${path}`}`;
+}
+
 /** Single place for repo pointers — every doc link on the site resolves through here. */
 export const REPO_URL = 'https://github.com/mnemonik-dev/universal-paywall';
 export const REPO_BRANCH = 'main';

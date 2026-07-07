@@ -1,6 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
-import { DOCS, REPO_URL, repoLink } from '../lib/site';
+import { DOCS, REPO_URL, repoLink, withBase } from '../lib/site';
 ---
 
 <Base
@@ -27,15 +27,15 @@ import { DOCS, REPO_URL, repoLink } from '../lib/site';
   <p>
     Each platform's authoritative attach recipe lives at
     <code>packages/integrations/deploy/&lt;platform&gt;/README.md</code> — linked from
-    its <a href="/integrations">integration page</a> here.
+    its <a href={withBase('/integrations')}>integration page</a> here.
   </p>
 
   <h2>On this site</h2>
   <ul class="link-list">
-    <li><a href="/how-it-works">How the rail works</a> — the four actors, the six patterns, the test ladder.</li>
-    <li><a href="/admins">Admin deployment overview</a> — prerequisites + the <code>up-integration</code> env reference.</li>
-    <li><a href="/developers">Developer guide</a> — architecture and building a new integration.</li>
-    <li><a href="/faq">FAQ</a> — custody, fees, chains, privacy, tips vs. paywalls.</li>
+    <li><a href={withBase('/how-it-works')}>How the rail works</a> — the four actors, the six patterns, the test ladder.</li>
+    <li><a href={withBase('/admins')}>Admin deployment overview</a> — prerequisites + the <code>up-integration</code> env reference.</li>
+    <li><a href={withBase('/developers')}>Developer guide</a> — architecture and building a new integration.</li>
+    <li><a href={withBase('/faq')}>FAQ</a> — custody, fees, chains, privacy, tips vs. paywalls.</li>
   </ul>
 
   <p>

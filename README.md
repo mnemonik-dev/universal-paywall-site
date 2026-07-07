@@ -18,6 +18,27 @@ npm run build      # static output → dist/
 npm run preview    # serve the built output locally
 ```
 
+## Deploy
+
+**GitHub Pages (automatic):** `.github/workflows/deploy.yml` builds and publishes
+the site on every push (and via manual *Run workflow*). It uses
+`actions/configure-pages` to inject the correct `SITE_URL`/`BASE_PATH`, so it works
+both at `https://<org>.github.io/universal-paywall-site/` and behind a custom
+domain with no config change. If the first run fails on Pages enablement, enable
+**Settings → Pages → Source: GitHub Actions** once and re-run (private repos need a
+paid plan for Pages).
+
+**Your own server:** build + rsync in one step, then serve `dist/` with any static
+server (`deploy/nginx.conf` is a ready-made server block):
+
+```bash
+DEPLOY_HOST=example.com DEPLOY_USER=deploy DEPLOY_PATH=/var/www/universal-paywall \
+  ./scripts/deploy-server.sh
+```
+
+Internal links honor `BASE_PATH` (see `withBase()` in `src/lib/site.ts`) — leave it
+unset for root deploys.
+
 ## Where content comes from
 
 The site **paraphrases the main repo's docs — it never invents claims**. The

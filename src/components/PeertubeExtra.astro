@@ -7,7 +7,7 @@
  */
 import Callout from './Callout.astro';
 import CodeBlock from './CodeBlock.astro';
-import { repoLink } from '../lib/site';
+import { repoLink, withBase } from '../lib/site';
 ---
 
 <h2 class="section-label">Tips first — support while you watch</h2>
@@ -100,7 +100,7 @@ import { repoLink } from '../lib/site';
     </li>
     <li>
       <strong>On-chain settlement is public.</strong> Amounts and wallet addresses are
-      pseudonymous but visible — see the <a href="/faq">privacy note</a>.
+      pseudonymous but visible — see the <a href={withBase('/faq')}>privacy note</a>.
     </li>
   </ul>
 </Callout>

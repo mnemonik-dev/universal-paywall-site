@@ -1,5 +1,5 @@
 ---
-import { REPO_URL, repoLink } from '../lib/site';
+import { REPO_URL, repoLink, withBase } from '../lib/site';
 ---
 
 <footer class="site-footer">
@@ -8,7 +8,7 @@ import { REPO_URL, repoLink } from '../lib/site';
       <strong>Universal Paywall</strong> — open source, non-custodial, feeless per-event settlement.<br />
       <a href={REPO_URL} rel="noopener">Source on GitHub</a> ·
       <a href={repoLink('packages/integrations/INTEGRATION-PLAYBOOK.md')} rel="noopener">Integration Playbook</a> ·
-      <a href="/docs">Docs</a>
+      <a href={withBase('/docs')}>Docs</a>
     </div>
     <div>
       This site is fully static and self-contained: no analytics, no trackers,

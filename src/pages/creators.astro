@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import IntegrationCard from '../components/IntegrationCard.astro';
 import Callout from '../components/Callout.astro';
+import { withBase } from '../lib/site';
 
 const integrations = (await getCollection('integrations'))
   .filter((i) => !i.data.payerSide)
@@ -52,7 +53,7 @@ const integrations = (await getCollection('integrations'))
     <p>
       A wallet address, and an instance whose admin has attached the rail (or a
       platform where you can run the attachment yourself — it never modifies the
-      platform). Send your admin to the <a href="/admins">admin overview</a>; the setup
+      platform). Send your admin to the <a href={withBase('/admins')}>admin overview</a>; the setup
       is a sidecar or a plugin install, not a migration.
     </p>
   </Callout>
@@ -63,7 +64,7 @@ const integrations = (await getCollection('integrations'))
   </ul>
 
   <p class="muted small">
-    Your audience pays through the <a href="/integrations/browser-extension">browser
+    Your audience pays through the <a href={withBase('/integrations/browser-extension')}>browser
     extension</a> or any client that speaks the rail — that side is covered too.
   </p>
 </Base>

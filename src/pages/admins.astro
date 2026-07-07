@@ -3,7 +3,7 @@ import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import CodeBlock from '../components/CodeBlock.astro';
 import Callout from '../components/Callout.astro';
-import { repoLink, PATTERN_LABELS } from '../lib/site';
+import { repoLink, PATTERN_LABELS, withBase } from '../lib/site';
 
 const integrations = (await getCollection('integrations'))
   .filter((i) => !i.data.payerSide)
@@ -86,8 +86,8 @@ RATE=1000 npx up-integration`}
 
   <Callout title="Two attachments are installs, not sidecars" kind="note">
     <p>
-      <a href="/integrations/peertube">PeerTube</a> is a published plugin you install
-      from Admin → Plugins, and <a href="/integrations/jellyfin">Jellyfin</a> uses the
+      <a href={withBase('/integrations/peertube')}>PeerTube</a> is a published plugin you install
+      from Admin → Plugins, and <a href={withBase('/integrations/jellyfin')}>Jellyfin</a> uses the
       official first-party Webhook plugin pointed at the sidecar. Both are sanctioned
       extension points — still zero source edits.
     </p>
@@ -102,7 +102,7 @@ RATE=1000 npx up-integration`}
       <tbody>
         {integrations.map((i) => (
           <tr>
-            <td><a href={`/integrations/${i.id}`}>{i.data.name}</a></td>
+            <td><a href={withBase(`/integrations/${i.id}`)}>{i.data.name}</a></td>
             <td><code>{PATTERN_LABELS[i.data.pattern] ?? i.data.pattern}</code></td>
             <td>{i.data.summary}</td>
             <td><a href={repoLink(i.data.recipeDoc)} rel="noopener">repo recipe</a></td>

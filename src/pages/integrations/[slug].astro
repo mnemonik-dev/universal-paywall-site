@@ -5,7 +5,7 @@ import Badge from '../../components/Badge.astro';
 import CodeBlock from '../../components/CodeBlock.astro';
 import Callout from '../../components/Callout.astro';
 import PeertubeExtra from '../../components/PeertubeExtra.astro';
-import { PATTERN_LABELS, repoLink } from '../../lib/site';
+import { PATTERN_LABELS, repoLink, withBase } from '../../lib/site';
 
 export async function getStaticPaths() {
   const entries = await getCollection('integrations');
@@ -59,7 +59,7 @@ function inlineMd(s: string): string {
   <p class="small muted">
     All values above are placeholders — supply your own facilitator, wallets, and rate.
     The shared prerequisites (a deployed <code>StakeVaultFactory</code>, a running
-    facilitator, a wallet registry) are covered in the <a href="/admins">admin overview</a>.
+    facilitator, a wallet registry) are covered in the <a href={withBase('/admins')}>admin overview</a>.
   </p>
 
   <h2 class="section-label">Verify</h2>
@@ -103,5 +103,5 @@ function inlineMd(s: string): string {
     </li>
   </ul>
 
-  <p><a href="/integrations">← All integrations</a></p>
+  <p><a href={withBase('/integrations')}>← All integrations</a></p>
 </Base>

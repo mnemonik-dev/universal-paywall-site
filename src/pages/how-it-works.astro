@@ -2,7 +2,7 @@
 import Base from '../layouts/Base.astro';
 import RailDiagram from '../components/RailDiagram.astro';
 import Callout from '../components/Callout.astro';
-import { repoLink } from '../lib/site';
+import { repoLink, withBase } from '../lib/site';
 ---
 
 <Base
@@ -81,37 +81,37 @@ import { repoLink } from '../lib/site';
           <td>1</td>
           <td><strong>Config redirect</strong></td>
           <td>The platform already speaks a protocol to some upstream; we implement that protocol and the operator redirects one config value at us. The platform can't tell.</td>
-          <td><a href="/integrations/navidrome">Navidrome</a> (<code>ND_LISTENBRAINZ_BASEURL</code>), <a href="/integrations/subsonic">Subsonic</a></td>
+          <td><a href={withBase('/integrations/navidrome')}>Navidrome</a> (<code>ND_LISTENBRAINZ_BASEURL</code>), <a href={withBase('/integrations/subsonic')}>Subsonic</a></td>
         </tr>
         <tr>
           <td>2</td>
           <td><strong>Event sidecar</strong></td>
           <td>The platform emits webhooks/notifications; we register our endpoint for the events that matter.</td>
-          <td><a href="/integrations/owncast">Owncast</a> (admin webhook), <a href="/integrations/jellyfin">Jellyfin</a> (official Webhook plugin), <a href="/integrations/rsshub">RSSHub</a> (crawler boundary)</td>
+          <td><a href={withBase('/integrations/owncast')}>Owncast</a> (admin webhook), <a href={withBase('/integrations/jellyfin')}>Jellyfin</a> (official Webhook plugin), <a href={withBase('/integrations/rsshub')}>RSSHub</a> (crawler boundary)</td>
         </tr>
         <tr>
           <td>3</td>
           <td><strong>Reverse proxy</strong></td>
           <td>Sit transparently in the request path; meter the requests whose serving is the billable event.</td>
-          <td><a href="/integrations/immich">Immich</a> (shared-link resolves)</td>
+          <td><a href={withBase('/integrations/immich')}>Immich</a> (shared-link resolves)</td>
         </tr>
         <tr>
           <td>4</td>
           <td><strong>Published plugin</strong></td>
           <td>Where the platform has a plugin loader, ship a published plugin into that sanctioned slot — still not a source edit.</td>
-          <td><a href="/integrations/peertube">PeerTube</a> (<code>action:api.video.viewed</code>)</td>
+          <td><a href={withBase('/integrations/peertube')}>PeerTube</a> (<code>action:api.video.viewed</code>)</td>
         </tr>
         <tr>
           <td>5</td>
           <td><strong>External provider</strong></td>
           <td>The platform fetches an external data source; we run that source.</td>
-          <td><a href="/integrations/mastodon">Mastodon</a> (<code>DONATION_CAMPAIGNS_URL</code>)</td>
+          <td><a href={withBase('/integrations/mastodon')}>Mastodon</a> (<code>DONATION_CAMPAIGNS_URL</code>)</td>
         </tr>
         <tr>
           <td>6</td>
           <td><strong>Payer-side adaptor</strong></td>
           <td>Nothing on the platform at all — pay on the user's behalf from the client.</td>
-          <td><a href="/integrations/browser-extension">Browser extension</a> (MV3)</td>
+          <td><a href={withBase('/integrations/browser-extension')}>Browser extension</a> (MV3)</td>
         </tr>
       </tbody>
     </table>

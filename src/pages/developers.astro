@@ -3,7 +3,7 @@ import Base from '../layouts/Base.astro';
 import RailDiagram from '../components/RailDiagram.astro';
 import CodeBlock from '../components/CodeBlock.astro';
 import Callout from '../components/Callout.astro';
-import { repoLink, REPO_URL } from '../lib/site';
+import { repoLink, REPO_URL, withBase } from '../lib/site';
 ---
 
 <Base
@@ -133,6 +133,6 @@ npm run e2e:anvil    -w @universal-paywall/extension`}
     <li><a href={repoLink('packages/integrations/INTEGRATION-PLAYBOOK.md')} rel="noopener">INTEGRATION-PLAYBOOK.md</a> — the full build guide (questions script included).</li>
     <li><a href={repoLink('work/creator-platform-integrations/integration-patterns.md')} rel="noopener">integration-patterns.md</a> — the six permissionless patterns, with the decision guide.</li>
     <li><a href={repoLink('work/creator-platform-integrations/testing-plan.md')} rel="noopener">testing-plan.md</a> — the L1→L4 ladder and per-platform matrix.</li>
-    <li><a href="/docs">The docs hub</a> — everything else.</li>
+    <li><a href={withBase('/docs')}>The docs hub</a> — everything else.</li>
   </ul>
 </Base>

@@ -1,5 +1,7 @@
 ---
 /** The three-audience fork — shown above the fold on the home page. */
+import { withBase } from '../lib/site';
+
 const audiences = [
   {
     href: '/creators',
@@ -25,9 +27,9 @@ const audiences = [
 <ul class="card-grid step-cards" aria-label="Choose your path">
   {audiences.map((a) => (
     <li class="card">
-      <h3><a href={a.href}>{a.who}</a></h3>
+      <h3><a href={withBase(a.href)}>{a.who}</a></h3>
       <p>{a.want}</p>
-      <p><a href={a.href}>{a.cta} →</a></p>
+      <p><a href={withBase(a.href)}>{a.cta} →</a></p>
     </li>
   ))}
 </ul>

@@ -4,7 +4,7 @@ import Base from '../layouts/Base.astro';
 import RailDiagram from '../components/RailDiagram.astro';
 import IntegrationCard from '../components/IntegrationCard.astro';
 import AudienceCTAs from '../components/AudienceCTAs.astro';
-import { REPO_URL, TAGLINE, repoLink } from '../lib/site';
+import { REPO_URL, TAGLINE, repoLink, withBase } from '../lib/site';
 
 const integrations = (await getCollection('integrations')).sort(
   (a, b) => Number(b.data.featured) - Number(a.data.featured) || a.data.order - b.data.order
@@ -21,8 +21,8 @@ const testedCount = integrations.filter((i) => i.data.tested).length;
       a minute watched — settles on-chain, feelessly, straight to the creator.
     </p>
     <div class="cta-row">
-      <a class="btn primary" href="/how-it-works">See how it works</a>
-      <a class="btn secondary" href="/integrations">Find your platform</a>
+      <a class="btn primary" href={withBase('/how-it-works')}>See how it works</a>
+      <a class="btn secondary" href={withBase('/integrations')}>Find your platform</a>
     </div>
     <AudienceCTAs />
   </section>
@@ -58,7 +58,7 @@ const testedCount = integrations.filter((i) => i.data.tested).length;
         </p>
       </li>
     </ul>
-    <p><a href="/how-it-works">Read the full walkthrough →</a></p>
+    <p><a href={withBase('/how-it-works')}>Read the full walkthrough →</a></p>
   </section>
 
   <section aria-labelledby="rail">

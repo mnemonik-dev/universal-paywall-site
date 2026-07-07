@@ -1,6 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
-import { repoLink } from '../lib/site';
+import { repoLink, withBase } from '../lib/site';
 
 const faqs = [
   {
@@ -49,7 +49,7 @@ const faqs = [
     q: 'What does a supporter actually do?',
     a: `Stake once, set a budget, then forget about it. The supporter deposits USDC into
         their vault and grants a policy like "up to N per month, until this date." From
-        then on the <a href="/integrations/browser-extension">browser extension</a> (or
+        then on the <a href="${withBase('/integrations/browser-extension')}">browser extension</a> (or
         any rail-aware client) pays automatically within that budget. They can revoke at
         any time, and can never be charged past the cap they set.`,
   },
@@ -104,6 +104,6 @@ const faqs = [
   <p>
     Something missing? The
     <a href={repoLink('work/HANDOFF.md')} rel="noopener">doc index</a> in the repo goes
-    deeper, or <a href="/docs">browse the docs hub</a>.
+    deeper, or <a href={withBase('/docs')}>browse the docs hub</a>.
   </p>
 </Base>
