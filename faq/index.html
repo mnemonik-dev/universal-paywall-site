@@ -1,0 +1,64 @@
+<!DOCTYPE html><html lang="en"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>FAQ · Universal Paywall</title><meta name="description" content="Custody, fees, chains, privacy, tips vs. paywalls — candid answers."><meta name="color-scheme" content="light dark"><link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%3E%3Crect%20width%3D%2216%22%20height%3D%2216%22%20rx%3D%223%22%20fill%3D%22%233451b2%22%2F%3E%3Cpath%20d%3D%22M4%205v4a4%204%200%200%200%208%200V5%22%20stroke%3D%22%23fff%22%20stroke-width%3D%222%22%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E"><script>
+      (() => {
+        try {
+          const stored = localStorage.getItem('theme');
+          if (stored === 'light' || stored === 'dark') {
+            document.documentElement.dataset.theme = stored;
+          }
+        } catch {}
+      })();
+    </script><link rel="stylesheet" href="/universal-paywall-site/_astro/admins.FxQGgUAu.css"></head> <body> <a class="skip-link" href="#main">Skip to content</a> <header class="site-header"> <div class="container"> <a class="brand" href="/universal-paywall-site/"><span class="mark" aria-hidden="true"></span>Universal Paywall</a> <nav class="site-nav" aria-label="Main"> <a href="/universal-paywall-site/how-it-works">How it works</a><a href="/universal-paywall-site/integrations">Integrations</a><a href="/universal-paywall-site/creators">Creators</a><a href="/universal-paywall-site/admins">Admins</a><a href="/universal-paywall-site/developers">Developers</a><a href="/universal-paywall-site/docs">Docs</a><a href="/universal-paywall-site/faq" aria-current="page">FAQ</a> <a href="https://github.com/mnemonik-dev/universal-paywall" rel="noopener">GitHub</a> <button class="theme-toggle" type="button" aria-label="Toggle color theme" title="Toggle color theme"> <span aria-hidden="true">◐</span> </button> </nav> </div> </header> <script type="module">const r=document.querySelector(".theme-toggle");r?.addEventListener("click",()=>{const t=document.documentElement,c=window.matchMedia("(prefers-color-scheme: dark)").matches,e=(t.dataset.theme??(c?"dark":"light"))==="dark"?"light":"dark";t.dataset.theme=e;try{localStorage.setItem("theme",e)}catch{}});</script> <main id="main" class="container">  <h1>FAQ</h1> <p class="lede muted">Candid answers — the honesty box, expanded.</p> <details class="faq-item"> <summary>Who holds the money? Is this custodial?</summary> <p>Non-custodial, all the way down. A supporter's funds sit in their own on-chain
+        <code>StakeVault</code>. They grant the facilitator a bounded, revocable policy — a
+        spending cap and an expiry — and funds leave the vault only when a valid,
+        in-policy charge settles. The facilitator can trigger settlement of legitimate
+        charges; it can never take custody, exceed the cap, or spend after expiry. Revoke
+        the grant and spending stops.</p> </details><details class="faq-item"> <summary>What are the fees?</summary> <p>Settlement is feeless per event: there is no processor cut and no rent inside the
+        rail — the creator receives the full <strong>rate × units</strong>. The only costs
+        outside the rail are ordinary blockchain transaction costs, which batching keeps
+        small, and whatever it costs you to run a sidecar (roughly nothing).</p> </details><details class="faq-item"> <summary>Which chain and asset does it settle in?</summary> <p>Today: USDC on an EVM L2 (contracts are Foundry-built and chain-agnostic across
+        EVM networks; local development runs on anvil). It is not Monero and not
+        Lightning — if that's what you need, this rail isn't that today. The settlement
+        layer is a deliberate, pluggable choice rather than a protocol religion, but we
+        only claim what's built and tested.</p> </details><details class="faq-item"> <summary>Do I have to fork or modify my platform?</summary> <p>No — that's the core design constraint. Every integration attaches through a
+        surface the platform already exposes: a webhook you register (Owncast), a config
+        value you redirect (Navidrome), an official plugin you install (Jellyfin,
+        PeerTube), an external data slot you serve (Mastodon), a reverse proxy you put in
+        front (Immich), or nothing on the platform at all (the browser extension).
+        Upgrades keep working because the platform's source is untouched.</p> </details><details class="faq-item"> <summary>Is this a paywall or a tipping system?</summary> <p>Both modes run on the same rail, and <strong>tips are the default</strong>.
+        In tip/support mode content stays open: supporters who have staked send a small
+        amount per view, listen, or minute, and everyone else consumes for free
+        (unknown payers are metered-and-skipped, never blocked or charged). Paywall mode —
+        gating a resource behind an x402 <code>402 Payment Required</code> — is an opt-in
+        switch, not the headline.</p> </details><details class="faq-item"> <summary>What does a supporter actually do?</summary> <p>Stake once, set a budget, then forget about it. The supporter deposits USDC into
+        their vault and grants a policy like "up to N per month, until this date." From
+        then on the <a href="/universal-paywall-site/integrations/browser-extension">browser extension</a> (or
+        any rail-aware client) pays automatically within that budget. They can revoke at
+        any time, and can never be charged past the cap they set.</p> </details><details class="faq-item"> <summary>What about privacy?</summary> <p>A candid note: on-chain settlement is public and pseudonymous. Amounts and wallet
+        addresses are visible on the chain, even though names are not attached by the
+        rail. Charge batching aggregates events, but if wallet-level privacy matters to
+        you, treat wallet hygiene (separate wallets per context) as your responsibility —
+        we'd rather say this plainly than pretend otherwise.</p> </details><details class="faq-item"> <summary>How do creators map to wallets?</summary> <p>A resolver maps platform-native identities to wallets. Today that's mostly
+        explicit JSON maps supplied by the operator (<code>CREATOR_WALLETS</code> /
+        <code>PAYER_WALLETS</code>); for music it's already a live registry — MusicBrainz
+        resolves <code>recording_mbid → artist_mbid → wallet</code>. Unknown ids resolve
+        to null and the event is skipped: the system never guesses a payee.</p> </details><details class="faq-item"> <summary>Is it actually tested, or is this a whitepaper?</summary> <p>Tested. Every platform climbs a four-layer ladder — unit tests, HTTP-contract
+        tests with the byte-exact payloads the real platform sends, a real Docker'd
+        instance driving the sidecar, and an on-chain money loop asserting the payee's
+        balance increased by exactly rate × units. Real instances verified include
+        PeerTube 7.3.0, Owncast, Navidrome, Jellyfin 10.11, a full-stack Mastodon v4,
+        RSSHub, Immich, and gonic.</p> </details><details class="faq-item"> <summary>Can AI agents pay too?</summary> <p>Yes — the payer side is client-neutral by design. The same
+        <code>@universal-paywall/agent</code> that powers the browser extension lets an
+        AI agent stake, grant a bounded policy, and pay per use — e.g. the RSSHub
+        integration bills a crawler a per-citation toll when it grounds an answer in a
+        feed item. The cap + expiry grant is exactly the spending bound you want around
+        an autonomous agent.</p> </details><p>
+Something missing? The
+<a href="https://github.com/mnemonik-dev/universal-paywall/blob/main/work/HANDOFF.md" rel="noopener">doc index</a> in the repo goes
+    deeper, or <a href="/universal-paywall-site/docs">browse the docs hub</a>.
+</p>  </main> <footer class="site-footer"> <div class="container"> <div> <strong>Universal Paywall</strong> — open source, non-custodial, feeless per-event settlement.<br> <a href="https://github.com/mnemonik-dev/universal-paywall" rel="noopener">Source on GitHub</a> ·
+<a href="https://github.com/mnemonik-dev/universal-paywall/blob/main/packages/integrations/INTEGRATION-PLAYBOOK.md" rel="noopener">Integration Playbook</a> ·
+<a href="/universal-paywall-site/docs">Docs</a> </div> <div>
+This site is fully static and self-contained: no analytics, no trackers,
+      no external fonts, no third-party requests. Theme preference is stored in
+      your browser's <code>localStorage</code> only.
+</div> </div> </footer> </body></html>
